@@ -6,7 +6,16 @@ import os
 
 # file locations
 FILE_EXECUTED_TESTS = 'executed_tests.txt'
+DIR_DATA_SET = 'data'
+DIR_OPENIMAGE_SET = DIR_DATA_SET + '/openimage'
+DIR_OPENIMAGE_TRAIN = DIR_OPENIMAGE_SET + '/train'
+DIR_OPENIMAGE_VAL = DIR_OPENIMAGE_SET + '/validation'
+DIR_OPENIMAGE_TEST = DIR_OPENIMAGE_SET + '/test'
 
+DIR_KAGGLE_ENFR_SET = DIR_DATA_SET + '/kaggle_english_french'
+FILE_KAGGLE_ENFR_TRAIN = DIR_KAGGLE_ENFR_SET + '/kaggle_en_fr_train.csv'
+FILE_KAGGLE_ENFR_VAL = DIR_KAGGLE_ENFR_SET + '/kaggle_en_fr_validation.csv'
+FILE_KAGGLE_ENFR_TEST = DIR_KAGGLE_ENFR_SET + '/kaggle_en_fr_test.csv'
 
 # define the different test cases
 K_ALGO = 'algorithm'
