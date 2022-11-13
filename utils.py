@@ -44,7 +44,20 @@ def get_model_inception(count_classes):
     )
 
 def get_model_bert():
-    pass
+    """
+    https://www.tensorflow.org/text/tutorials/classify_text_with_bert#define_your_model
+    """
+    text_input = tf.keras.layers.Input(shape=(), dtype=tf.string, name='text')
+    preprocessing_layer = hub.KerasLayer(tfhub_handle_preprocess, name='preprocessing')
+    encoder_inputs = preprocessing_layer(text_input)
+    encoder = hub.KerasLayer(tfhub_handle_encoder, trainable=True, name='BERT_encoder')
+    outputs = encoder(encoder_inputs)
+    net = outputs['pooled_output']
+    net = tf.keras.layers.Dropout(0.1)(net)
+    net = tf.keras.layers.Dense(1, activation=None, name='classifier')(net)
+    return tf.keras.Model(text_input, net)
+
+
 
 def build_test(structure):
     if config.K_ALGO in structure:
