@@ -26,7 +26,7 @@ def split_csv_data(data):
 
 def copy_images_from_csv(csvData, path):
     for _, row in csvData:
-        class_name = row[''].replace('/', '')
+        class_name = row['LabelName'].replace('/', '')
         shutil.copytree(f'{config.DIR_OPENIMAGE_LABELLED}/{class_name}', f'{path}/{class_name}')
 
 # cleanup DATA directory
@@ -43,7 +43,7 @@ os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/test {config.
 os.system(f'wget https://storage.googleapis.com/openimages/v7/oidv7-train-annotations-human-imagelabels.csv {config.DIR_OPENIMAGE_SET}/train.csv')
 os.system(f'wget https://storage.googleapis.com/openimages/v7/oidv7-val-annotations-human-imagelabels.csv {config.DIR_OPENIMAGE_SET}/val.csv')
 os.system(f'wget https://storage.googleapis.com/openimages/v7/oidv7-test-annotations-human-imagelabels.csv {config.DIR_OPENIMAGE_SET}/test.csv')
-os.system(f'wget https://storage.googleapis.com/openimages/v7/oidv7-test-annotations-human-imagelabels.csv {config.DIR_OPENIMAGE_SET}/classes.csv')
+os.system(f'wget https://storage.googleapis.com/openimages/v7/oidv7-class-descriptions.csv {config.DIR_OPENIMAGE_SET}/classes.csv')
 
 label_open_images('train.csv')
 label_open_images('val.csv')
