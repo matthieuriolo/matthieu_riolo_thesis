@@ -10,6 +10,8 @@ import pandas as pd
 def label_open_images(file):
     labelsData = pd.read_csv(f'{config.DIR_OPENIMAGE_SET}/{file}')
     for _, row in labelsData.iterrows():
+        if row['Confidence'] != "1.0":
+            continue
         label = row['ImageLabel'].replace('/', '')
         img_name = row['ImageID'] + '.jpg'
         shutil.copy(f'{config.DIR_OPENIMAGE_SET}/{img_name}', f'{config.DIR_OPENIMAGE_LABELLED}/{label}')
