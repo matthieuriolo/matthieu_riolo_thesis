@@ -53,7 +53,7 @@ classData = pd.read_csv(f'{config.DIR_OPENIMAGE_SET}/classes.csv')
 classData = classData.sample(frac = 1)
 
 for size in config.V_DATA_SIZE_PERC:
-    data = classData.iloc[:int(size / 100.0  len(classData.index)),:]
+    data = classData.iloc[:int(size / 100.0 * len(classData.index)),:]
     dataTrain, dataVal, dataTest = split_csv_data(data)
 
     copy_images_from_csv(dataTrain, config.DIR_OPENIMAGE_TRAIN.format(size))
@@ -69,7 +69,7 @@ kaggleData = pd.read_csv(config.DIR_KAGGLE_ENFR_SET + '/en-fr-translation-datase
 kaggleData = kaggleData.sample(frac = 1)
 
 for size in config.V_DATA_SIZE_PERC:
-    data = kaggleData.iloc[:int(size / 100.0  len(kaggleData.index)),:]
+    data = kaggleData.iloc[:int(size / 100.0 * len(kaggleData.index)),:]
     dataTrain, dataVal, dataTest = split_csv_data(data)
 
     dataTrain.to_csv(config.FILE_KAGGLE_ENFR_TRAIN.format(size))
