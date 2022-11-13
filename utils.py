@@ -1,4 +1,5 @@
 import config
+import time
 
 def structure_enumerate(container_structures):
     """
@@ -32,3 +33,51 @@ def structure_ran_successfully(structure):
     """
     with open(config.FILE_EXECUTED_TESTS, 'a') as f:
         f.write(structure_name(structure) + "\n")
+
+def get_model_inception(count_classes):
+    return tf.keras.applications.inception_v3.InceptionV3(
+        include_top=True,
+        weights=None,
+        input_shape=None,
+        classes=count_classes,
+        classifier_activation='softmax'
+    )
+
+def get_model_bert():
+    pass
+
+def build_test(structure):
+    if config.K_ALGO in structure:
+        if structure[config.K_ALGO] == config.V_ALGO_INCEPTION:
+            return InceptionTestRun(structure)
+        elif structure[config.K_ALGO] == config.V_ALGO_BERT:
+            return BertTestRun(structure)
+        
+    raise NotImplementedError()
+
+class TestRun:
+    def __init__(self, structure):
+        self.structure = structure
+    
+    def pre(self):
+        time.sleep(config.PRE_SLEEP_TIME)
+    
+    def post(self):
+        structure_ran_successfully(self.structure)
+    
+    def run(self):
+        raise NotImplementedError()
+    
+    def get_batch_size(self):
+        return int(self.structure[config.K_BATCH_SIZE])
+    
+    def get_pci_speed(self):
+        return float(self.structure[config.K_PCI_PERC]) / 100.0
+    
+    def get_gpu_speed(self):
+        return float(self.structure[config.K_GPU_PERC]) / 100.0
+
+class InceptionTestRun(TestRun):
+    pass
+class BertTestRun(TestRun):
+    pass

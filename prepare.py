@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import config
+import utils
 import os
 import shutil
 import pandas as pd
@@ -39,6 +40,7 @@ kaggleDataVal.to_csv(config.FILE_KAGGLE_ENFR_VAL)
 kaggleDataTest.to_csv(config.FILE_KAGGLE_ENFR_TEST)
 
 
+# set up base inception v3 model
 
 
 # def reset_weights(model):
@@ -73,32 +75,16 @@ kaggleDataTest.to_csv(config.FILE_KAGGLE_ENFR_TEST)
 #             var.assign(initializer(var.shape, var.dtype)) # use the initializer
 
 
-
-
 # build inception from tensorflow application
+#model = utils.get_model_inception(???)
+#model.save_weight(config.BASE_MODEL_INCEPTION)
 
-# tf.keras.applications.inception_v3.InceptionV3(
-#     include_top=True,
-#     weights='imagenet',
-#     input_tensor=None,
-#     input_shape=None,
-#     pooling=None,
-#     classes=1000,
-#     classifier_activation='softmax'
-# )
-
+# build bert from tensorflow hub
 
 # https://tfhub.dev/google/bert_cased_L-24_H-1024_A-16/1
 
 # model = tfhub.load('https://tfhub.dev/google/bert_cased_L-24_H-1024_A-16/1')
+# model.save_weight(config.BASE_MODEL_BERT)
 
-
-# import tarfile
-# file = tarfile.open('bert.tar.gz')
-# file.extractall('./tmp')  
-# file.close()
-
-# from pathlib import Path
-# filename = Path('bert.tar.gz')
-# response = requests.get('https://tfhub.dev/google/bert_cased_L-24_H-1024_A-16/1?tf-hub-format=compressed')
-# filename.write_bytes(response.content)
+#model = utils.get_model_bert(???)
+#model.save_weight(config.BASE_MODEL_BERT)
