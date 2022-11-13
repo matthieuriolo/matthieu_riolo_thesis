@@ -6,9 +6,9 @@ import os
 
 # file locations
 FILE_EXECUTED_TESTS = 'executed_tests.txt'
-DIR_DATA_SET = '/media/matthieuriolo/Backup/matthieu_riolo_thesis/data'
+DIR_DATA_SET = '/media/matthieuriolo/datascience/matthieu_riolo_thesis/data'
 DIR_OPENIMAGE_SET = DIR_DATA_SET + '/openimage'
-DIR_OPENIMAGE_TRAIN = DIR_DATA_SET + '/openimage_labelled'
+DIR_OPENIMAGE_LABELLED = DIR_DATA_SET + '/openimage_labelled'
 DIR_OPENIMAGE_TRAIN = DIR_OPENIMAGE_SET + '/{0}_train'
 DIR_OPENIMAGE_VAL = DIR_OPENIMAGE_SET + '/{0}_validation'
 DIR_OPENIMAGE_TEST = DIR_OPENIMAGE_SET + '/{0}_test'
