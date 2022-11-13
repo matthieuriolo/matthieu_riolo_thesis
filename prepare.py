@@ -14,9 +14,14 @@ os.mkdir(config.DIR_DATA_SET)
 
 
 # download OpenImage DataSet
-os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/train {config.DIR_OPENIMAGE_TRAIN}')
-os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/validation {config.DIR_OPENIMAGE_VAL}')
-os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/test {config.DIR_OPENIMAGE_TEST}')
+os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/train {config.DIR_OPENIMAGE_SET}')
+os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/validation {config.DIR_OPENIMAGE_SET}')
+os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/test {config.DIR_OPENIMAGE_SET}')
+
+os.system(f'wget https://storage.googleapis.com/openimages/v7/oidv7-train-annotations-human-imagelabels.csv {config.DIR_OPENIMAGE_SET}/train.csv')
+os.system(f'wget https://storage.googleapis.com/openimages/v7/oidv7-val-annotations-human-imagelabels.csv {config.DIR_OPENIMAGE_SET}/val.csv')
+os.system(f'wget https://storage.googleapis.com/openimages/v7/oidv7-test-annotations-human-imagelabels.csv {config.DIR_OPENIMAGE_SET}/test.csv')
+
 
 
 # download kaggle https://www.kaggle.com/datasets/dhruvildave/en-fr-translation-dataset
@@ -27,20 +32,21 @@ os.system(f'unzip -d {config.DIR_KAGGLE_ENFR_SET} {config.DIR_KAGGLE_ENFR_SET}/e
 kaggleData = pd.read_csv(config.DIR_KAGGLE_ENFR_SET + '/en-fr-translation-dataset.zip')
 kaggleData = kaggleData.sample(frac = 1)
 
-# splitting dataframe by row index (sizes are estimated by OpenImage)
-trainSize = int(0.92 * len(kaggleData.index))
-valSize = int(0.02 * len(kaggleData.index))
-testSize = len(kaggleData.index) - trainSize - valSize
-kaggleDataTrain = kaggleData.iloc[:trainSize,:]
-kaggleDataVal = kaggleData.iloc[trainSize:(trainSize+valSize),:]
-kaggleDataTest = kaggleData.iloc[(trainSize+valSize):,:]
+for size in config.V_DATA_SIZE_PERC:
+    data = kaggleData.iloc[:int(size / 100.0  len(kaggleData.index)),:]
 
-kaggleDataTrain.to_csv(config.FILE_KAGGLE_ENFR_TRAIN)
-kaggleDataVal.to_csv(config.FILE_KAGGLE_ENFR_VAL)
-kaggleDataTest.to_csv(config.FILE_KAGGLE_ENFR_TEST)
+    trainSize = int(config.V_TRAIN_VALIDATION_PERC[0] / 100.0 * len(data.index))
+    valSize = int(config.V_TRAIN_VALIDATION_PERC[1] / 100.0 * len(data.index))
+    testSize = len(data.index) - trainSize - valSize
+    dataTrain = data.iloc[:trainSize,:]
+    dataVal = data.iloc[trainSize:(trainSize+valSize),:]
+    dataTest = data.iloc[(trainSize+valSize):,:]
 
+    dataTrain.to_csv(config.FILE_KAGGLE_ENFR_TRAIN.format(size))
+    dataVal.to_csv(config.FILE_KAGGLE_ENFR_VAL.format(size))
+    dataTest.to_csv(config.FILE_KAGGLE_ENFR_TEST.format(size))
 
-# set up base inception v3 model
+# separating data by size
 
 
 # def reset_weights(model):
