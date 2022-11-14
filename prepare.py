@@ -14,7 +14,7 @@ def label_open_images(file):
             continue
         label = row['ImageLabel'].replace('/', '')
         img_name = row['ImageID'] + '.jpg'
-        shutil.copy(f'{config.DIR_OPENIMAGE_SET}/{img_name}', f'{config.DIR_OPENIMAGE_LABELLED}/{label}')
+        shutil.copy(f'{config.DIR_OPENIMAGE_UNLABELLED}/{img_name}', f'{config.DIR_OPENIMAGE_LABELLED}/{label}')
 
 def split_csv_data(data):
     trainSize = int(config.V_TRAIN_VALIDATION_PERC[0] / 100.0 * len(data.index))
@@ -38,9 +38,9 @@ os.mkdir(config.DIR_DATA_SET)
 
 
 # download OpenImage DataSet
-os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/train {config.DIR_OPENIMAGE_SET}')
-os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/validation {config.DIR_OPENIMAGE_SET}')
-os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/test {config.DIR_OPENIMAGE_SET}')
+os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/train {config.DIR_OPENIMAGE_UNLABELLED}')
+os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/validation {config.DIR_OPENIMAGE_UNLABELLED}')
+os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/test {config.DIR_OPENIMAGE_UNLABELLED}')
 
 os.system(f'wget https://storage.googleapis.com/openimages/v7/oidv7-train-annotations-human-imagelabels.csv -O {config.DIR_OPENIMAGE_SET}/train.csv')
 os.system(f'wget https://storage.googleapis.com/openimages/v7/oidv7-val-annotations-human-imagelabels.csv -O {config.DIR_OPENIMAGE_SET}/val.csv')
