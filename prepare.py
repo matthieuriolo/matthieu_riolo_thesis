@@ -10,11 +10,17 @@ import pandas as pd
 def label_open_images(file):
     labelsData = pd.read_csv(f'{config.DIR_OPENIMAGE_SET}/{file}')
     for _, row in labelsData.iterrows():
-        if row['Confidence'] != "1.0":
+        if row['Confidence'] != 1.0:
             continue
-        label = row['ImageLabel'].replace('/', '')
+        label = row['LabelName'].replace('/', '')
         img_name = row['ImageID'] + '.jpg'
-        shutil.copy(f'{config.DIR_OPENIMAGE_UNLABELLED}/{img_name}', f'{config.DIR_OPENIMAGE_LABELLED}/{label}')
+
+        src = f'{config.DIR_OPENIMAGE_UNLABELLED}/{img_name}'
+        if not os.path.exists(src):
+            continue
+        dst = f'{config.DIR_OPENIMAGE_LABELLED}/{label}/'
+        os.makedirs(dst, exist_ok=True)
+        shutil.copy(src, dst)
 
 def split_csv_data(data):
     trainSize = int(config.V_TRAIN_VALIDATION_PERC[0] / 100.0 * len(data.index))
@@ -27,7 +33,7 @@ def split_csv_data(data):
 
 
 def copy_images_from_csv(csvData, path):
-    for _, row in csvData:
+    for _, row in csvData.iterrows():
         class_name = row['LabelName'].replace('/', '')
         shutil.copytree(f'{config.DIR_OPENIMAGE_LABELLED}/{class_name}', f'{path}/{class_name}')
 
@@ -37,7 +43,7 @@ if os.path.isdir(config.DIR_DATA_SET):
 os.mkdir(config.DIR_DATA_SET)
 
 
-# download OpenImage DataSet
+# # download OpenImage DataSet
 os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/train {config.DIR_OPENIMAGE_UNLABELLED}')
 os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/validation {config.DIR_OPENIMAGE_UNLABELLED}')
 os.system(f'aws s3 --no-sign-request sync s3://open-images-dataset/test {config.DIR_OPENIMAGE_UNLABELLED}')
