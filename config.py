@@ -8,11 +8,13 @@ import os
 FILE_EXECUTED_TESTS = 'executed_tests.txt'
 DIR_DATA_SET = '/media/matthieuriolo/datascience/matthieu_riolo_thesis/data'
 DIR_OPENIMAGE_SET = DIR_DATA_SET + '/openimage'
-DIR_OPENIMAGE_UNLABELLED = DIR_OPENIMAGE_SET + '/unlabelled'
-DIR_OPENIMAGE_LABELLED = DIR_OPENIMAGE_SET + '/labelled'
-DIR_OPENIMAGE_TRAIN = DIR_OPENIMAGE_SET + '/{0}_train'
-DIR_OPENIMAGE_VAL = DIR_OPENIMAGE_SET + '/{0}_validation'
-DIR_OPENIMAGE_TEST = DIR_OPENIMAGE_SET + '/{0}_test'
+DIR_OPENIMAGE_DATA = DIR_OPENIMAGE_SET + '/images'
+DIR_OPENIMAGE_TRAIN = DIR_OPENIMAGE_SET + '/{0}_train.csv'
+DIR_OPENIMAGE_VAL = DIR_OPENIMAGE_SET + '/{0}_validation.csv'
+DIR_OPENIMAGE_TEST = DIR_OPENIMAGE_SET + '/{0}_test.csv'
+
+COL_OPENIMAGE_ID = 'ImageId'
+COL_OPENIMAGE_LABEL = 'Label'
 
 DIR_KAGGLE_ENFR_SET = DIR_DATA_SET + '/kaggle_english_french'
 FILE_KAGGLE_ENFR_TRAIN = DIR_KAGGLE_ENFR_SET + '/{0}_train.csv'
