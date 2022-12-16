@@ -77,7 +77,7 @@ def get_model_transformer(input_vocab_size, target_vocab_size, weights_size=None
         dropout_rate=dropout_rate)
 
     if weights_size:
-        model.load_weights(config.FILE_BASE_MODEL_.format(weights_size))
+        model.load_weights(config.FILE_BASE_MODEL_TRANSFORMER.format(weights_size))
 
     return model
 
