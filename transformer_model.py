@@ -5,9 +5,16 @@ import tensorflow_text as tftext
 import pathlib
 import re
 
-reserved_tokens=["[PAD]", "[UNK]", "[START]", "[END]"]
-START = tf.argmax(tf.constant(reserved_tokens) == "[START]")
-END = tf.argmax(tf.constant(reserved_tokens) == "[END]")
+RESERVED_TOKENS = ["[PAD]", "[UNK]", "[START]", "[END]"]
+START = tf.argmax(tf.constant(RESERVED_TOKENS) == "[START]")
+END = tf.argmax(tf.constant(RESERVED_TOKENS) == "[END]")
+
+# this numbers are taken from the original paper
+NUM_LAYERS = 6
+D_MODEL = 512
+DFF = 2048
+NUM_HEADS = 8
+DROPOUT_RATE = 0.1
 
 
 def positional_encoding(length, depth):
@@ -290,7 +297,7 @@ def add_start_end(ragged):
 
 def cleanup_text(token_txt):
   # Drop the reserved tokens, except for "[UNK]".
-  bad_tokens = [re.escape(tok) for tok in reserved_tokens if tok != "[UNK]"]
+  bad_tokens = [re.escape(tok) for tok in RESERVED_TOKENS if tok != "[UNK]"]
   bad_token_re = "|".join(bad_tokens)
 
   bad_cells = tf.strings.regex_full_match(token_txt, bad_token_re)
@@ -305,7 +312,7 @@ def cleanup_text(token_txt):
 class CustomTokenizer(tf.Module):
   def __init__(self, vocab_path):
     self.tokenizer = tftext.BertTokenizer(vocab_path, lower_case=True)
-    self._reserved_tokens = reserved_tokens
+    self._reserved_tokens = RESERVED_TOKENS
     self._vocab_path = tf.saved_model.Asset(vocab_path)
 
     vocab = pathlib.Path(vocab_path).read_text().splitlines()

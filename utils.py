@@ -7,6 +7,8 @@ import os
 import transformer_model
 
 from keras.applications.inception_v3 import preprocess_input
+from keras.callbacks import EarlyStopping, CSVLogger
+from keras.optimizers import Adam
 
 
 def structure_enumerate(container_structures):
@@ -55,29 +57,25 @@ def get_model_inception(count_classes, weights_size=None):
     )
 
     if weights_size:
-        model.load_weights(config.FILE_BASE_MODEL_INCEPTION.format(weights_size))
+        model.load_weights(
+            config.FILE_BASE_MODEL_INCEPTION.format(weights_size))
 
     return model
 
 
 def get_model_transformer(input_vocab_size, target_vocab_size, weights_size=None):
-    num_layers = 4
-    d_model = 128
-    dff = 512
-    num_heads = 8
-    dropout_rate = 0.1
-
     model = transformer_model.Transformer(
-        num_layers=num_layers,
-        d_model=d_model,
-        num_heads=num_heads,
-        dff=dff,
+        num_layers=transformer_model.NUM_LAYERS,
+        d_model=transformer_model.D_MODEL,
+        num_heads=transformer_model.NUM_HEADS,
+        dff=transformer_model.DFF,
         input_vocab_size=input_vocab_size,
         target_vocab_size=target_vocab_size,
-        dropout_rate=dropout_rate)
+        dropout_rate=transformer_model.DROPOUT_RATE)
 
     if weights_size:
-        model.load_weights(config.FILE_BASE_MODEL_TRANSFORMER.format(weights_size))
+        model.load_weights(
+            config.FILE_BASE_MODEL_TRANSFORMER.format(weights_size))
 
     return model
 
@@ -95,15 +93,55 @@ def build_test(structure):
 class TestRun:
     def __init__(self, structure):
         self.structure = structure
+        self.startDateTime = None
+        self.endDateTime = None
+        self.mirrored_strategy = tf.distribute.MirroredStrategy(devices=config.LIST_GPUS)
 
     def pre(self):
-        time.sleep(config.PRE_SLEEP_TIME)
+        if not os.path.isdir(config.DIR_RESULTS):
+            os.mkdir(config.DIR_RESULTS)
+        if not os.path.isdir(self.get_dir_result()):
+            os.mkdir(self.get_dir_result())
+        
+        for gpu_id in config.GPU_IDS:
+            clock_speed = (self.get_gpu_speed()/100.0) * config.GPU_MAX_SPEED
+            os.system(f'nvidia-smi -i {gpu_id} --lock-gpu-clocks=0,{clock_speed}')
 
+        for pci_slot in config.PCI_SLOTS:
+            pci_generation = self.get_pci_generation()
+            os.system(f'./pcie_set_speed.sh {pci_slot} {pci_generation}')
+        
+        time.sleep(config.PRE_SLEEP_TIME)
+        
     def post(self):
+        for gpu_id in config.GPU_IDS:
+            os.system(f'nvidia-smi -i {gpu_id} --reset-gpu-clocks')
+        for pci_slot in config.PCI_SLOTS:
+            os.system(f'./pcie_set_speed.sh {pci_slot} 4')
+
+        with open(config.FILE_IMAGENET_TIME.format(self.get_data_size()), 'w') as fileTime:
+            fileTime.write(self.startDateTime.isoformat())
+            fileTime.write(self.endDateTime.isoformat())
+            fileTime.write(str(self.endDateTime - self.startDateTime))
         structure_ran_successfully(self.structure)
 
     def run(self):
         raise NotImplementedError()
+
+    def get_dir_result(self):
+        return config.DIR_RESULTS.format(structure_name(self.structure))
+
+    def get_file_log_fit(self):
+        return config.FILE_LOG_FIT.format(self.get_dir_result())
+
+    def get_file_log_evaluate(self):
+        return config.FILE_LOG_EVALUATE.format(self.get_dir_result())
+
+    def get_file_time(self):
+        return config.FILE_TIME.format(self.get_dir_result())
+
+    def get_file_weights(self):
+        return config.FILE_WEIGHTS.format(self.get_dir_result())
 
     def get_data_size(self):
         return int(self.structure[config.K_DATA_SIZE_PERC])
@@ -111,17 +149,14 @@ class TestRun:
     def get_batch_size(self):
         return int(self.structure[config.K_BATCH_SIZE])
 
-    def get_pci_speed(self):
-        return float(self.structure[config.K_PCI_PERC]) / 100.0
+    def get_pci_generation(self):
+        return float(self.structure[config.K_PCI_GENERATION]) / 100.0
 
     def get_gpu_speed(self):
         return float(self.structure[config.K_GPU_PERC]) / 100.0
 
 
 class InceptionTestRun(TestRun):
-    # TODO setting cpu, pci speed
-    # TODO tf.get_logger()
-
     def pre(self):
         self.train_data = tf.keras.utils.image_dataset_from_directory(
             config.DIR_IMAGENET_TRAIN.format(self.get_data_size()),
@@ -146,8 +181,9 @@ class InceptionTestRun(TestRun):
             preprocessing_function=preprocess_input
         )
 
-        self.model = get_model_inception(
-            self.train_data.class_names, self.get_data_size())
+        with self.mirrored_strategy:
+            self.model = get_model_inception(
+                len(self.train_data.class_names), self.get_data_size())
         self.model.compile(
             optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
         TestRun.pre(self)
@@ -158,23 +194,102 @@ class InceptionTestRun(TestRun):
             self.train_data,
             epochs=config.MAX_EPOCHS,
             validation_data=self.val_data,
-            verbose=2
+            verbose=config.VERBOSE,
+            callbacks=[
+                EarlyStopping(
+                    monitor='val_loss',
+                    patience=config.MAX_PATIENCE,
+                ),
+                CSVLogger(self.get_file_log_fit())
+            ]
         )
         self.endDateTime = datetime.now()
 
     def post(self):
-        with open(config.FILE_IMAGENET_TIME.format(self.get_data_size()), 'w') as fileTime:
-            fileTime.write(self.startDateTime.isoformat())
-            fileTime.write(self.endDateTime.isoformat())
-            fileTime.write(str(self.endDateTime - self.startDateTime))
-
-        self.model.save_weights(
-            config.FILE_IMAGENET_WEIGHTS.format(self.get_data_size()))
-
-        # TODO save result from test set
-        self.model.evaluate(self.test_data, verbose=2)
+        self.model.save_weights(self.get_file_weights())
+        self.model.evaluate(
+            self.test_data,
+            verbose=config.VERBOSE,
+            callbacks=[
+                CSVLogger(self.get_file_log_evaluate())
+            ]
+        )
         TestRun.post(self)
 
 
 class TransformerTestRun(TestRun):
-    pass
+    def pre(self):
+        self.train_data = tf.data.experimental.make_csv_dataset(
+            config.FILE_KAGGLE_ENFR_TRAIN.format(self.get_data_size()),
+            ignore_errors=True,
+            batch_size=self.get_batch_size(),
+            num_epochs=1,
+            header=True,
+            shuffle=False
+        )
+
+        self.val_data = tf.data.experimental.make_csv_dataset(
+            config.FILE_KAGGLE_ENFR_VAL.format(self.get_data_size()),
+            ignore_errors=True,
+            batch_size=self.get_batch_size(),
+            num_epochs=1,
+            header=True,
+            shuffle=False
+        )
+
+        self.test_data = tf.data.experimental.make_csv_dataset(
+            config.FILE_KAGGLE_ENFR_TEST.format(self.get_data_size()),
+            ignore_errors=True,
+            batch_size=self.get_batch_size(),
+            num_epochs=1,
+            header=True,
+            shuffle=False
+        )
+
+
+        with self.mirrored_strategy:
+            self.model = get_model_transformer(
+                len(self.train_data.class_names), self.get_data_size())
+
+            learning_rate = transformer_model.CustomSchedule(
+                transformer_model.D_MODEL)
+            optimizerAdam = Adam(
+                learning_rate,
+                beta_1=0.9,
+                beta_2=0.98,
+                epsilon=1e-9
+            )
+        self.model.compile(
+            optimizer=optimizerAdam,
+            loss=transformer_model.masked_loss,
+            metrics=[transformer_model.masked_accuracy]
+        )
+        TestRun.pre(self)
+
+    def run(self):
+        self.startDateTime = datetime.now()
+        self.model.fit(
+            self.train_data,
+            epochs=config.MAX_EPOCHS,
+            validation_data=self.val_data,
+            verbose=config.VERBOSE,
+            callbacks=[
+                EarlyStopping(
+                    monitor='val_loss',
+                    patience=config.MAX_PATIENCE,
+                ),
+                CSVLogger(self.get_file_log_fit())
+            ]
+        )
+        self.endDateTime = datetime.now()
+
+    def post(self):
+        self.model.save_weights(self.get_file_weights())
+        self.model.evaluate(
+            self.test_data,
+            verbose=config.VERBOSE,
+            callbacks=[
+                CSVLogger(self.get_file_log_evaluate())
+            ]
+        )
+        TestRun.post(self)
