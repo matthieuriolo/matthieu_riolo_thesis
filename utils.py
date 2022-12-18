@@ -48,6 +48,10 @@ def structure_ran_successfully(structure):
 
 
 def get_model_inception(count_classes, weights_size=None):
+    """
+    Builds the tensorflow inception v3 model
+    If weights_size is set then the weights will be loaded
+    """
     model = tf.keras.applications.inception_v3.InceptionV3(
         include_top=True,
         weights=None,
@@ -64,6 +68,10 @@ def get_model_inception(count_classes, weights_size=None):
 
 
 def get_model_transformer(input_vocab_size, target_vocab_size, weights_size=None):
+    """
+    Builds the tensorflow transformer model
+    If weights_size is set then the weights will be loaded
+    """
     model = transformer_model.Transformer(
         num_layers=transformer_model.NUM_LAYERS,
         d_model=transformer_model.D_MODEL,
@@ -81,6 +89,10 @@ def get_model_transformer(input_vocab_size, target_vocab_size, weights_size=None
 
 
 def build_test(structure):
+    """
+    Resolves the model type which should be used ffor testing
+    Returns an initilalized TestRun object
+    """
     if config.K_ALGO in structure:
         if structure[config.K_ALGO] == config.V_ALGO_INCEPTION:
             return InceptionTestRun(structure)
@@ -91,6 +103,9 @@ def build_test(structure):
 
 
 class TestRun:
+    """
+    Abstract class for running test cases
+    """
     def __init__(self, structure):
         self.structure = structure
         self.startDateTime = None
@@ -157,6 +172,9 @@ class TestRun:
 
 
 class InceptionTestRun(TestRun):
+    """
+    Test class for the inception model
+    """
     def pre(self):
         self.train_data = tf.keras.utils.image_dataset_from_directory(
             config.DIR_IMAGENET_TRAIN.format(self.get_data_size()),
@@ -218,6 +236,9 @@ class InceptionTestRun(TestRun):
 
 
 class TransformerTestRun(TestRun):
+    """
+    Test class for the transformer model
+    """
     def pre(self):
         self.train_data = tf.data.experimental.make_csv_dataset(
             config.FILE_KAGGLE_ENFR_TRAIN.format(self.get_data_size()),
