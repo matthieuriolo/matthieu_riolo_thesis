@@ -26,7 +26,7 @@ FILE_TRANSFORMER_TOKENIZER_FR = DIR_BASE_MODEL_TRANSFORMER + '/{0}_fr_tokens.txt
 
 # test configs
 GPU_IDS = [0, 1]
-LIST_GPUS = GPU_IDS.map(lambda id: "/gpu:" + str(id))
+LIST_GPUS = map(lambda id: "/gpu:" + str(id), GPU_IDS)
 GPU_MAX_SPEED = 2100
 PCI_SLOTS = ['01:00.0', '04:00.0']
 MAX_EPOCHS = 100
