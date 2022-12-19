@@ -2,7 +2,7 @@ import config
 import utils
 
 
-for structure in config.structure_enumerate(config.CONTAINER_STRUCTURES):
+for structure in utils.structure_enumerate(config.CONTAINER_STRUCTURES):
     # ignore already executed test cases
     if utils.structure_tested(structure):
         continue

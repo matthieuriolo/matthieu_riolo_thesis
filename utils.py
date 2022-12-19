@@ -106,33 +106,36 @@ class TestRun:
     """
     Abstract class for running test cases
     """
+
     def __init__(self, structure):
         self.structure = structure
         self.startDateTime = None
         self.endDateTime = None
-        self.mirrored_strategy = tf.distribute.MirroredStrategy(devices=config.LIST_GPUS)
+        self.mirrored_strategy = tf.distribute.MirroredStrategy(
+            devices=config.LIST_GPUS)
 
     def pre(self):
         if not os.path.isdir(config.DIR_RESULTS):
             os.mkdir(config.DIR_RESULTS)
         if not os.path.isdir(self.get_dir_result()):
             os.mkdir(self.get_dir_result())
-        
+
         for gpu_id in config.GPU_IDS:
-            clock_speed = (self.get_gpu_speed()/100.0) * config.GPU_MAX_SPEED
-            os.system(f'nvidia-smi -i {gpu_id} --lock-gpu-clocks=0,{clock_speed}')
+            clock_speed = int((self.get_gpu_speed()/100.0) * config.GPU_MAX_SPEED)
+            os.system(
+                f'sudo nvidia-smi -i {gpu_id} --lock-gpu-clocks=0,{clock_speed}')
 
         for pci_slot in config.PCI_SLOTS:
             pci_generation = self.get_pci_generation()
-            os.system(f'./pcie_set_speed.sh {pci_slot} {pci_generation}')
-        
+            os.system(f'sudo ./pcie_set_speed.sh {pci_slot} {pci_generation}')
+
         time.sleep(config.PRE_SLEEP_TIME)
-        
+
     def post(self):
         for gpu_id in config.GPU_IDS:
-            os.system(f'nvidia-smi -i {gpu_id} --reset-gpu-clocks')
+            os.system(f'sudo nvidia-smi -i {gpu_id} --reset-gpu-clocks')
         for pci_slot in config.PCI_SLOTS:
-            os.system(f'./pcie_set_speed.sh {pci_slot} 4')
+            os.system(f'sudo ./pcie_set_speed.sh {pci_slot} 4')
 
         with open(config.FILE_IMAGENET_TIME.format(self.get_data_size()), 'w') as fileTime:
             fileTime.write(self.startDateTime.isoformat())
@@ -165,7 +168,7 @@ class TestRun:
         return int(self.structure[config.K_BATCH_SIZE])
 
     def get_pci_generation(self):
-        return float(self.structure[config.K_PCI_GENERATION]) / 100.0
+        return self.structure[config.K_PCI_GENERATION]
 
     def get_gpu_speed(self):
         return float(self.structure[config.K_GPU_PERC]) / 100.0
@@ -175,33 +178,34 @@ class InceptionTestRun(TestRun):
     """
     Test class for the inception model
     """
+
     def pre(self):
         self.train_data = tf.keras.utils.image_dataset_from_directory(
             config.DIR_IMAGENET_TRAIN.format(self.get_data_size()),
             batch_size=self.get_batch_size(),
-            image_size=(128, 128),
-            shuffle=False,
-            preprocessing_function=preprocess_input
+            image_size=config.SIZE_IMAGENET_DATA,
+            shuffle=False
         )
 
         self.val_data = tf.keras.utils.image_dataset_from_directory(
             config.DIR_IMAGENET_VAL.format(self.get_data_size()),
             batch_size=self.get_batch_size(),
-            image_size=(128, 128),
-            shuffle=False,
-            preprocessing_function=preprocess_input
-        )
+            image_size=config.SIZE_IMAGENET_DATA,
+            shuffle=False
+        ).map(self.preprocess)
 
         self.test_data = tf.keras.utils.image_dataset_from_directory(
             config.DIR_IMAGENET_TEST.format(self.get_data_size()),
-            image_size=(128, 128),
-            shuffle=False,
-            preprocessing_function=preprocess_input
-        )
+            image_size=config.SIZE_IMAGENET_DATA,
+            shuffle=False
+        ).map(self.preprocess)
 
-        with self.mirrored_strategy:
+        with self.mirrored_strategy.scope():
             self.model = get_model_inception(
                 len(self.train_data.class_names), self.get_data_size())
+
+        self.train_data = self.train_data.map(self.preprocess)
+
         self.model.compile(
             optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
         TestRun.pre(self)
@@ -234,11 +238,16 @@ class InceptionTestRun(TestRun):
         )
         TestRun.post(self)
 
+    def preprocess(self, image, label):
+        image = preprocess_input(image)
+        return image, label
+
 
 class TransformerTestRun(TestRun):
     """
     Test class for the transformer model
     """
+
     def pre(self):
         self.train_data = tf.data.experimental.make_csv_dataset(
             config.FILE_KAGGLE_ENFR_TRAIN.format(self.get_data_size()),
@@ -267,8 +276,7 @@ class TransformerTestRun(TestRun):
             shuffle=False
         )
 
-
-        with self.mirrored_strategy:
+        with self.mirrored_strategy.scope():
             self.model = get_model_transformer(
                 len(self.train_data.class_names), self.get_data_size())
 

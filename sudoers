@@ -1,0 +1,2 @@
+matthieuriolo  ALL=(ALL) NOPASSWD: /media/matthieuriolo/WinSSD/code/matthieu_riolo_thesis/pcie_set_speed.sh 
+matthieuriolo  ALL=(ALL) NOPASSWD: /usr/bin/nvidia-smi
