@@ -26,7 +26,7 @@ FILE_TRANSFORMER_TOKENIZER_FR = DIR_BASE_MODEL_TRANSFORMER + '/{0}_fr_tokens.txt
 
 # test configs
 GPU_IDS = [0, 1]
-LIST_GPUS = map(lambda id: "/gpu:" + str(id), GPU_IDS)
+LIST_GPUS = ["/gpu:" + str(gpi_id) for gpi_id in GPU_IDS]
 GPU_MAX_SPEED = 2100
 PCI_SLOTS = ['01:00.0', '04:00.0']
 MAX_EPOCHS = 100
@@ -40,6 +40,9 @@ FILE_TIME = '{0}/time.txt'
 FILE_WEIGHTS = '{0}/weights'
 FILE_LOG_FIT = '{0}/log_fit.txt'
 FILE_LOG_EVALUATE = '{0}/log_evaluate.txt'
+
+SIZE_IMAGENET_DATA = (128, 128)
+
 
 # define the different test cases
 K_ALGO = 'algorithm'
