@@ -1,5 +1,5 @@
 import config
-import datetime
+from datetime import datetime
 import time
 import tensorflow as tf
 import itertools
