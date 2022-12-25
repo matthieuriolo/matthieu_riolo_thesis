@@ -41,7 +41,7 @@ This can take up to 2 days!
 The test cases can be executed with
 
 ```
-python run_tests.py
+XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/lib/cuda python run_tests.py
 ```
 
 There is a delay between every run of PRE_SLEEP_TIME (default 10min) seconds. The resulting models, duration and validation score will be stored in DIR_RESULTS. If a test case runs successfully then an entry is stored in FILE_EXECUTED_TESTS. Rerunning the script wont execute the test a second time if the entry is stored in the above file.
