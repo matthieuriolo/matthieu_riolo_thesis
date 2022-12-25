@@ -111,6 +111,7 @@ for size in config.V_DATA_SIZE_PERC:
 print("Create base inceptionv3 models")
 if not os.path.isdir(config.DIR_BASE_MODEL_INCEPTION):
     os.mkdir(config.DIR_BASE_MODEL_INCEPTION)
+
 for size in config.V_DATA_SIZE_PERC:
     train_data = tf.keras.utils.image_dataset_from_directory(
         config.DIR_IMAGENET_TRAIN.format(size),
