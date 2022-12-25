@@ -55,7 +55,7 @@ def get_model_inception(count_classes, weights_size=None):
     model = tf.keras.applications.inception_v3.InceptionV3(
         include_top=True,
         weights=None,
-        input_shape=None,
+        input_shape=config.SIZE_IMAGENET_DATA + (3,),
         classes=count_classes,
         classifier_activation='softmax'
     )
@@ -132,12 +132,12 @@ class TestRun:
         time.sleep(config.PRE_SLEEP_TIME)
 
     def post(self):
-        for gpu_id in config.GPU_IDS:
-            os.system(f'sudo nvidia-smi -i {gpu_id} --reset-gpu-clocks')
-        for pci_slot in config.PCI_SLOTS:
-            os.system(f'sudo ./pcie_set_speed.sh {pci_slot} 4')
+        # for gpu_id in config.GPU_IDS:
+        #     os.system(f'sudo nvidia-smi -i {gpu_id} --reset-gpu-clocks')
+        # for pci_slot in config.PCI_SLOTS:
+        #     os.system(f'sudo ./pcie_set_speed.sh {pci_slot} 4')
 
-        with open(config.FILE_IMAGENET_TIME.format(self.get_data_size()), 'w') as fileTime:
+        with open(self.get_file_time(), 'w') as fileTime:
             fileTime.write(self.startDateTime.isoformat())
             fileTime.write(self.endDateTime.isoformat())
             fileTime.write(str(self.endDateTime - self.startDateTime))
@@ -184,20 +184,23 @@ class InceptionTestRun(TestRun):
             config.DIR_IMAGENET_TRAIN.format(self.get_data_size()),
             batch_size=self.get_batch_size(),
             image_size=config.SIZE_IMAGENET_DATA,
-            shuffle=False
+            shuffle=False,
+            label_mode='categorical'
         )
 
         self.val_data = tf.keras.utils.image_dataset_from_directory(
             config.DIR_IMAGENET_VAL.format(self.get_data_size()),
             batch_size=self.get_batch_size(),
             image_size=config.SIZE_IMAGENET_DATA,
-            shuffle=False
+            shuffle=False,
+            label_mode='categorical'
         ).map(self.preprocess)
 
         self.test_data = tf.keras.utils.image_dataset_from_directory(
             config.DIR_IMAGENET_TEST.format(self.get_data_size()),
             image_size=config.SIZE_IMAGENET_DATA,
-            shuffle=False
+            shuffle=False,
+            label_mode='categorical'
         ).map(self.preprocess)
 
         with self.mirrored_strategy.scope():
@@ -249,6 +252,9 @@ class TransformerTestRun(TestRun):
     """
 
     def pre(self):
+        self.en_tokenizer = transformer_model.CustomTokenizer(config.FILE_TRANSFORMER_TOKENIZER_EN.format(self.get_data_size()))
+        self.fr_tokenizer = transformer_model.CustomTokenizer(config.FILE_TRANSFORMER_TOKENIZER_FR.format(self.get_data_size()))
+        
         self.train_data = tf.data.experimental.make_csv_dataset(
             config.FILE_KAGGLE_ENFR_TRAIN.format(self.get_data_size()),
             ignore_errors=True,
@@ -256,7 +262,7 @@ class TransformerTestRun(TestRun):
             num_epochs=1,
             header=True,
             shuffle=False
-        )
+        ).map(self.preprocess)
 
         self.val_data = tf.data.experimental.make_csv_dataset(
             config.FILE_KAGGLE_ENFR_VAL.format(self.get_data_size()),
@@ -265,7 +271,7 @@ class TransformerTestRun(TestRun):
             num_epochs=1,
             header=True,
             shuffle=False
-        )
+        ).map(self.preprocess)
 
         self.test_data = tf.data.experimental.make_csv_dataset(
             config.FILE_KAGGLE_ENFR_TEST.format(self.get_data_size()),
@@ -274,11 +280,10 @@ class TransformerTestRun(TestRun):
             num_epochs=1,
             header=True,
             shuffle=False
-        )
-
+        ).map(self.preprocess)
+        
         with self.mirrored_strategy.scope():
-            self.model = get_model_transformer(
-                len(self.train_data.class_names), self.get_data_size())
+            self.model = get_model_transformer(self.en_tokenizer.get_vocab_size(), self.fr_tokenizer.get_vocab_size(), self.get_data_size())
 
             learning_rate = transformer_model.CustomSchedule(
                 transformer_model.D_MODEL)
@@ -288,11 +293,13 @@ class TransformerTestRun(TestRun):
                 beta_2=0.98,
                 epsilon=1e-9
             )
+        
         self.model.compile(
             optimizer=optimizerAdam,
             loss=transformer_model.masked_loss,
             metrics=[transformer_model.masked_accuracy]
         )
+
         TestRun.pre(self)
 
     def run(self):
@@ -322,3 +329,19 @@ class TransformerTestRun(TestRun):
             ]
         )
         TestRun.post(self)
+
+    def preprocess(self, row):
+        iteratorColumns = iter(row.values())
+        en_string_tensor = next(iteratorColumns)
+        fr_string_tensor = next(iteratorColumns)
+        
+        en = self.en_tokenizer.tokenize(en_string_tensor)                 # Output is ragged.
+        en = en[:, :config.MAX_TOKENS]                         # Trim to MAX_TOKENS.
+        en = en.to_tensor()                             # Convert to 0-padded dense Tensor
+
+        fr = self.fr_tokenizer.tokenize(fr_string_tensor)
+        fr = fr[:, :(config.MAX_TOKENS+1)]
+        fr_inputs = fr[:, :-1].to_tensor()  # Drop the [END] tokens
+        fr_labels = fr[:, 1:].to_tensor()   # Drop the [START] tokens
+
+        return (en, fr_inputs), fr_labels
