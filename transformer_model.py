@@ -9,10 +9,9 @@ RESERVED_TOKENS = ["[PAD]", "[UNK]", "[START]", "[END]"]
 START = tf.argmax(tf.constant(RESERVED_TOKENS) == "[START]")
 END = tf.argmax(tf.constant(RESERVED_TOKENS) == "[END]")
 
-# this numbers are taken from the original paper
-NUM_LAYERS = 6
-D_MODEL = 512
-DFF = 2048
+NUM_LAYERS = 4
+D_MODEL = 128
+DFF = 512
 NUM_HEADS = 8
 DROPOUT_RATE = 0.1
 
