@@ -147,7 +147,7 @@ class TestRun:
         raise NotImplementedError()
 
     def get_dir_result(self):
-        return config.DIR_RESULTS.format(structure_name(self.structure))
+        return config.DIR_RESULT_ALGO.format(structure_name(self.structure))
 
     def get_file_log_fit(self):
         return config.FILE_LOG_FIT.format(self.get_dir_result())

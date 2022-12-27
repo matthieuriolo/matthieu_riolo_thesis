@@ -61,6 +61,7 @@ VERBOSE = 1
 
 FILE_EXECUTED_TESTS = '/media/matthieuriolo/datascience/matthieu_riolo_thesis/executed_tests.txt'
 DIR_RESULTS = '/media/matthieuriolo/datascience/matthieu_riolo_thesis/results'
+DIR_RESULT_ALGO = '/media/matthieuriolo/datascience/matthieu_riolo_thesis/results/{0}'
 FILE_TIME = '{0}/time.txt'
 FILE_WEIGHTS = '{0}/weights'
 FILE_LOG_FIT = '{0}/log_fit.txt'
