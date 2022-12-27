@@ -2,7 +2,6 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import config
 import utils
-import tensorflow as tf
 
 for structure in utils.structure_enumerate(config.CONTAINER_STRUCTURES):
     # ignore already executed test cases

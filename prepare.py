@@ -11,6 +11,8 @@ import tensorflow as tf
 import tensorflow_text as tftext
 from tensorflow_text.tools.wordpiece_vocab import bert_vocab_from_dataset as bert_vocab
 import transformer_model
+import re
+
 
 # helper functions
 def split_csv_data(data):
@@ -95,9 +97,53 @@ print("Download and unzip kaggle en/fr translation dataset")
 os.system(f'kaggle datasets download -d dhruvildave/en-fr-translation-dataset -p {config.DIR_KAGGLE_ENFR_SET}')
 os.system(f'unzip -d {config.DIR_KAGGLE_ENFR_SET} {config.DIR_KAGGLE_ENFR_SET}/en-fr-translation-dataset.zip')
 
+# cleanup kaggle en/fr data
+print("Cleanup kaggle en/fr translation dataset")
+kaggleDataFirstIteration = True
+for kaggleDataChunk in pd.read_csv(config.DIR_KAGGLE_ENFR_SET + '/en-fr.csv', chunksize=100):
+    # remove very small or very large entries 
+    kaggleDataChunk = kaggleDataChunk[
+        (kaggleDataChunk['en'].str.split().str.len() < config.SIZE_KAGGLE_ENFR_MAX_LENGTH)
+        &
+        (kaggleDataChunk['fr'].str.split().str.len() < config.SIZE_KAGGLE_ENFR_MAX_LENGTH)
+        &
+        (kaggleDataChunk['en'].str.split().str.len() > config.SIZE_KAGGLE_ENFR_MIN_LENGTH)
+        &
+        (kaggleDataChunk['fr'].str.split().str.len() > config.SIZE_KAGGLE_ENFR_MIN_LENGTH)
+    ]
+
+    # remove "formating" symbols
+    for symbol_from, symbol_to in config.REPLACE_KAGGLE_SYMBOLS.items():
+        kaggleDataChunk = kaggleDataChunk.replace(symbol_from, symbol_to, regex=True)
+    
+    # detect none basic latin symbol and skip them
+    # rather restrive - only allow chars from: Basic Latin, Latin-1 Supplement, Latin Extended-A, Latin Extended-B
+    regex = r'[^\u0000-\u024F]'
+    kaggleDataChunk = kaggleDataChunk[
+        (kaggleDataChunk['en'].str.contains(regex) == False)
+        &
+        (kaggleDataChunk['fr'].str.contains(regex) == False)
+    ]
+
+    # skip entries with bad formating
+    for skipableString in config.SKIP_KAGGLE_CONTAINS:
+        kaggleDataChunk = kaggleDataChunk[
+            (kaggleDataChunk['en'].str.contains(skipableString, flags=re.IGNORECASE) == False)
+            &
+            (kaggleDataChunk['fr'].str.contains(skipableString, flags=re.IGNORECASE) == False)
+        ]
+
+    kaggleDataChunk.to_csv(
+        config.DIR_KAGGLE_ENFR_SET + '/en-fr-short.csv',
+        mode= 'w' if kaggleDataFirstIteration else 'a',
+        index=False,
+        header=kaggleDataFirstIteration
+    )
+    kaggleDataFirstIteration = False
+
 # split kaggle data set
 print("Split kaggle en/fr translation dataset")
-kaggleData = pd.read_csv(config.DIR_KAGGLE_ENFR_SET + '/en-fr.csv')
+kaggleData = pd.read_csv(config.DIR_KAGGLE_ENFR_SET + '/en-fr-short.csv')
 kaggleData = kaggleData.sample(frac = 1, random_state=config.RANDOM_SEED)
 for size in config.V_DATA_SIZE_PERC:
     data = kaggleData.iloc[:int(size / 100.0 * len(kaggleData.index)),:]

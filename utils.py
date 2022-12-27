@@ -132,10 +132,10 @@ class TestRun:
         time.sleep(config.PRE_SLEEP_TIME)
 
     def post(self):
-        # for gpu_id in config.GPU_IDS:
-        #     os.system(f'sudo nvidia-smi -i {gpu_id} --reset-gpu-clocks')
-        # for pci_slot in config.PCI_SLOTS:
-        #     os.system(f'sudo ./pcie_set_speed.sh {pci_slot} 4')
+        for gpu_id in config.GPU_IDS:
+            os.system(f'sudo nvidia-smi -i {gpu_id} --reset-gpu-clocks')
+        for pci_slot in config.PCI_SLOTS:
+            os.system(f'sudo ./pcie_set_speed.sh {pci_slot} 4')
 
         with open(self.get_file_time(), 'w') as fileTime:
             fileTime.write(self.startDateTime.isoformat())
@@ -338,7 +338,7 @@ class TransformerTestRun(TestRun):
         en = self.en_tokenizer.tokenize(en_string_tensor)                 # Output is ragged.
         en = en[:, :config.MAX_TOKENS]                         # Trim to MAX_TOKENS.
         en = en.to_tensor()                             # Convert to 0-padded dense Tensor
-
+        
         fr = self.fr_tokenizer.tokenize(fr_string_tensor)
         fr = fr[:, :(config.MAX_TOKENS+1)]
         fr_inputs = fr[:, :-1].to_tensor()  # Drop the [END] tokens

@@ -9,6 +9,31 @@ DIR_IMAGENET_TRAIN = DIR_IMAGENET_SET + '/{0}_train'
 DIR_IMAGENET_VAL = DIR_IMAGENET_SET + '/{0}_validation'
 DIR_IMAGENET_TEST = DIR_IMAGENET_SET + '/{0}_test'
 
+SIZE_KAGGLE_ENFR_MAX_LENGTH = 30
+SIZE_KAGGLE_ENFR_MIN_LENGTH = 3
+REPLACE_KAGGLE_SYMBOLS = {
+    '◦': '',
+    r'\u2028': ' ', # line separator
+    r'\u0092': "'", #PRIVATE USE TWO
+}
+SKIP_KAGGLE_CONTAINS = [
+    '---',
+    '___',
+    '===',
+    '\.' * 6,
+    '……',
+    # urls
+    'http:\/\/'
+    'https:\/\/',
+    'www\.',
+    # contact adress & emails
+    '@',
+    'Fax',
+    'Tel\.',
+    'Telephone:',
+    'Tél\.',
+    'Téléphone:',
+]
 DIR_KAGGLE_ENFR_SET = DIR_DATA_SET + '/kaggle_english_french'
 FILE_KAGGLE_ENFR_TRAIN = DIR_KAGGLE_ENFR_SET + '/{0}_train.csv'
 FILE_KAGGLE_ENFR_VAL = DIR_KAGGLE_ENFR_SET + '/{0}_validation.csv'
@@ -49,7 +74,7 @@ K_ALGO = 'algorithm'
 V_ALGO_TRANSFORMER = 'transformer'
 V_ALGO_INCEPTION = 'inception'
 
-V_BATCH_SIZES = [64, 128, 256]
+V_BATCH_SIZES = [32, 64, 128]
 V_DATA_SIZE_PERC = [2, 5, 10, 50, 100]
 V_TRAIN_VALIDATION_PERC = (92, 2) # remaining is used as the size of the test data set
 
@@ -72,4 +97,4 @@ CONTAINER_STRUCTURES = dict([
 # others
 RANDOM_SEED = 123456
 BERT_TOKENIZER_PARAMS=dict(lower_case=True)
-MAX_TOKENS = 4920
+MAX_TOKENS = SIZE_KAGGLE_ENFR_MAX_LENGTH * 2
