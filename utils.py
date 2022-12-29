@@ -82,6 +82,7 @@ def get_model_transformer(input_vocab_size, target_vocab_size, weights_size=None
         dropout_rate=transformer_model.DROPOUT_RATE)
 
     if weights_size:
+        model.build([tf.TensorShape([1, config.MAX_TOKENS]), tf.TensorShape([1, config.MAX_TOKENS])])
         model.load_weights(
             config.FILE_BASE_MODEL_TRANSFORMER.format(weights_size))
 

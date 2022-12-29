@@ -208,25 +208,12 @@ for size in config.V_DATA_SIZE_PERC:
     write_vocab_file(config.FILE_TRANSFORMER_TOKENIZER_EN.format(size), en_vocab)
     write_vocab_file(config.FILE_TRANSFORMER_TOKENIZER_FR.format(size), fr_vocab)
 
+
 print("Create base transformer model")
 for size in config.V_DATA_SIZE_PERC:
     en_tokenizer = transformer_model.CustomTokenizer(config.FILE_TRANSFORMER_TOKENIZER_EN.format(size))
     fr_tokenizer = transformer_model.CustomTokenizer(config.FILE_TRANSFORMER_TOKENIZER_FR.format(size))
+
     model = utils.get_model_transformer(en_tokenizer.get_vocab_size(), fr_tokenizer.get_vocab_size())
-    
-    # manually trigger .build() by calling .fit() without training
-    sentence = en_tokenizer.tokenize(tf.constant(
-        "Hello World, how are you today?" * config.MAX_TOKENS
-    )).to_tensor()
-    sentence = sentence[:, :config.MAX_TOKENS] # Trim to MAX_TOKENS.
-
-    start_end = fr_tokenizer.tokenize([''])[0]
-    start = start_end[0][tf.newaxis]
-    end = start_end[1][tf.newaxis]
-
-    output_array = tf.TensorArray(dtype=tf.int64, size=0, dynamic_size=True)
-    output_array = output_array.write(0, start)
-    output = tf.transpose(output_array.stack())
-    model([sentence, output], training=False)
-
+    model.build([tf.TensorShape([1, config.MAX_TOKENS]), tf.TensorShape([1, config.MAX_TOKENS])])
     model.save_weights(config.FILE_BASE_MODEL_TRANSFORMER.format(size))
