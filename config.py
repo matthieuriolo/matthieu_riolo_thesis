@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # data locations
-DIR_DATA_SET = '/media/matthieuriolo/datascience/matthieu_riolo_thesis/data'
+DIR_DATA_SET = '/media/matthieuriolo/WinSSD/code/matthieu_riolo_thesis/data'
 
 DIR_IMAGENET_SET = DIR_DATA_SET + '/imagenet'
 DIR_IMAGENET_DATA = DIR_IMAGENET_SET + '/images'
@@ -14,7 +14,7 @@ SIZE_KAGGLE_ENFR_MIN_LENGTH = 3
 REPLACE_KAGGLE_SYMBOLS = {
     '◦': '',
     r'\u2028': ' ', # line separator
-    r'\u0092': "'", #PRIVATE USE TWO
+    r'\u0092': "'", # PRIVATE USE TWO
 }
 SKIP_KAGGLE_CONTAINS = [
     '---',
@@ -41,10 +41,10 @@ FILE_KAGGLE_ENFR_TEST = DIR_KAGGLE_ENFR_SET + '/{0}_test.csv'
 DIR_KAGGLE_ENFR_RESULTS = DIR_KAGGLE_ENFR_SET + '/results/{0}'
 
 DIR_BASE_MODEL_INCEPTION = DIR_IMAGENET_SET + '/base_models'
-FILE_BASE_MODEL_INCEPTION = DIR_BASE_MODEL_INCEPTION + '/{0}_inception'
+FILE_BASE_MODEL_INCEPTION = DIR_BASE_MODEL_INCEPTION + '/{0}_inception.h5'
 
 DIR_BASE_MODEL_TRANSFORMER = DIR_KAGGLE_ENFR_SET + '/base_models'
-FILE_BASE_MODEL_TRANSFORMER = DIR_BASE_MODEL_TRANSFORMER + '/{0}_transformer'
+FILE_BASE_MODEL_TRANSFORMER = DIR_BASE_MODEL_TRANSFORMER + '/{0}_transformer.h5'
 FILE_TRANSFORMER_TOKENIZER_EN = DIR_BASE_MODEL_TRANSFORMER + '/{0}_en_tokens.txt'
 FILE_TRANSFORMER_TOKENIZER_FR = DIR_BASE_MODEL_TRANSFORMER + '/{0}_fr_tokens.txt'
 

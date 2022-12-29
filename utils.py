@@ -5,10 +5,10 @@ import tensorflow as tf
 import itertools
 import os
 import transformer_model
+import csv
 
-from keras.applications.inception_v3 import preprocess_input
 from keras.callbacks import EarlyStopping, CSVLogger
-from keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam
 
 
 def structure_enumerate(container_structures):
@@ -139,7 +139,9 @@ class TestRun:
 
         with open(self.get_file_time(), 'w') as fileTime:
             fileTime.write(self.startDateTime.isoformat())
+            fileTime.write("\n")
             fileTime.write(self.endDateTime.isoformat())
+            fileTime.write("\n")
             fileTime.write(str(self.endDateTime - self.startDateTime))
         structure_ran_successfully(self.structure)
 
@@ -194,7 +196,7 @@ class InceptionTestRun(TestRun):
             image_size=config.SIZE_IMAGENET_DATA,
             shuffle=False,
             label_mode='categorical'
-        ).map(self.preprocess)
+        ).map(self.preprocess).prefetch(self.get_batch_size())
 
         self.test_data = tf.keras.utils.image_dataset_from_directory(
             config.DIR_IMAGENET_TEST.format(self.get_data_size()),
@@ -207,7 +209,7 @@ class InceptionTestRun(TestRun):
             self.model = get_model_inception(
                 len(self.train_data.class_names), self.get_data_size())
 
-        self.train_data = self.train_data.map(self.preprocess)
+        self.train_data = self.train_data.map(self.preprocess).prefetch(self.get_batch_size())
 
         self.model.compile(
             optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -222,8 +224,8 @@ class InceptionTestRun(TestRun):
             verbose=config.VERBOSE,
             callbacks=[
                 EarlyStopping(
-                    monitor='val_loss',
-                    patience=config.MAX_PATIENCE,
+                    monitor='loss',
+                    patience=config.MAX_PATIENCE
                 ),
                 CSVLogger(self.get_file_log_fit())
             ]
@@ -232,17 +234,21 @@ class InceptionTestRun(TestRun):
 
     def post(self):
         self.model.save_weights(self.get_file_weights())
-        self.model.evaluate(
+        logs = self.model.evaluate(
             self.test_data,
             verbose=config.VERBOSE,
-            callbacks=[
-                CSVLogger(self.get_file_log_evaluate())
-            ]
+            return_dict=True
         )
+        
+        with open(self.get_file_log_evaluate(), 'w') as fileLog:
+            writer = csv.DictWriter(fileLog, fieldnames=logs.keys())
+            writer.writeheader()
+            writer.writerow(logs)
+        
         TestRun.post(self)
 
     def preprocess(self, image, label):
-        image = preprocess_input(image)
+        image = tf.keras.applications.inception_v3.preprocess_input(image)
         return image, label
 
 
@@ -262,7 +268,7 @@ class TransformerTestRun(TestRun):
             num_epochs=1,
             header=True,
             shuffle=False
-        ).map(self.preprocess)
+        ).map(self.preprocess).prefetch(self.get_batch_size())
 
         self.val_data = tf.data.experimental.make_csv_dataset(
             config.FILE_KAGGLE_ENFR_VAL.format(self.get_data_size()),
@@ -271,7 +277,7 @@ class TransformerTestRun(TestRun):
             num_epochs=1,
             header=True,
             shuffle=False
-        ).map(self.preprocess)
+        ).map(self.preprocess).prefetch(self.get_batch_size())
 
         self.test_data = tf.data.experimental.make_csv_dataset(
             config.FILE_KAGGLE_ENFR_TEST.format(self.get_data_size()),
@@ -311,8 +317,8 @@ class TransformerTestRun(TestRun):
             verbose=config.VERBOSE,
             callbacks=[
                 EarlyStopping(
-                    monitor='val_loss',
-                    patience=config.MAX_PATIENCE,
+                    monitor='loss',
+                    patience=config.MAX_PATIENCE
                 ),
                 CSVLogger(self.get_file_log_fit())
             ]
@@ -321,13 +327,17 @@ class TransformerTestRun(TestRun):
 
     def post(self):
         self.model.save_weights(self.get_file_weights())
-        self.model.evaluate(
+        logs = self.model.evaluate(
             self.test_data,
             verbose=config.VERBOSE,
-            callbacks=[
-                CSVLogger(self.get_file_log_evaluate())
-            ]
+            return_dict=True
         )
+
+        with open(self.get_file_log_evaluate(), 'w') as fileLog:
+            writer = csv.DictWriter(fileLog, fieldnames=logs.keys())
+            writer.writeheader()
+            writer.writerow(logs)
+        
         TestRun.post(self)
 
     def preprocess(self, row):
@@ -335,9 +345,9 @@ class TransformerTestRun(TestRun):
         en_string_tensor = next(iteratorColumns)
         fr_string_tensor = next(iteratorColumns)
         
-        en = self.en_tokenizer.tokenize(en_string_tensor)                 # Output is ragged.
-        en = en[:, :config.MAX_TOKENS]                         # Trim to MAX_TOKENS.
-        en = en.to_tensor()                             # Convert to 0-padded dense Tensor
+        en = self.en_tokenizer.tokenize(en_string_tensor) # Output is ragged.
+        en = en[:, :config.MAX_TOKENS]                    # Trim to MAX_TOKENS.
+        en = en.to_tensor()                               # Convert to 0-padded dense Tensor
         
         fr = self.fr_tokenizer.tokenize(fr_string_tensor)
         fr = fr[:, :(config.MAX_TOKENS+1)]
