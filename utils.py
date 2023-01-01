@@ -122,7 +122,7 @@ class TestRun:
             os.mkdir(self.get_dir_result())
 
         for gpu_id in config.GPU_IDS:
-            clock_speed = int((self.get_gpu_speed()/100.0) * config.GPU_MAX_SPEED)
+            clock_speed = int(self.get_gpu_speed() * config.GPU_MAX_SPEED)
             os.system(
                 f'sudo nvidia-smi -i {gpu_id} --lock-gpu-clocks=0,{clock_speed}')
 
