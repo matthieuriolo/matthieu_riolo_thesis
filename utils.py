@@ -8,7 +8,7 @@ import transformer_model
 import csv
 
 from keras.callbacks import EarlyStopping, CSVLogger
-from tensorflow.keras.optimizers import Adam
+from keras.optimizers import Adam
 
 
 def structure_enumerate(container_structures):
@@ -47,10 +47,9 @@ def structure_ran_successfully(structure):
         f.write(structure_name(structure) + "\n")
 
 
-def get_model_inception(count_classes, weights_size=None):
+def save_model_inception(size, count_classes):
     """
-    Builds the tensorflow inception v3 model
-    If weights_size is set then the weights will be loaded
+    Save & compile the tensorflow inception v3 model
     """
     model = tf.keras.applications.inception_v3.InceptionV3(
         include_top=True,
@@ -60,11 +59,17 @@ def get_model_inception(count_classes, weights_size=None):
         classifier_activation='softmax'
     )
 
-    if weights_size:
-        model.load_weights(
-            config.FILE_BASE_MODEL_INCEPTION.format(weights_size))
+    model.compile(
+        optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    model.save(config.FILE_BASE_MODEL_INCEPTION.format(size))
 
-    return model
+
+def load_model_inception(weights_size):
+    """
+    Loads the tensorflow inception v3 model
+    """
+
+    return tf.keras.models.load_model(config.FILE_BASE_MODEL_INCEPTION.format(weights_size))
 
 
 def get_model_transformer(input_vocab_size, target_vocab_size, weights_size=None):
@@ -187,33 +192,28 @@ class InceptionTestRun(TestRun):
             config.DIR_IMAGENET_TRAIN.format(self.get_data_size()),
             batch_size=self.get_batch_size(),
             image_size=config.SIZE_IMAGENET_DATA,
-            shuffle=False,
+            seed=config.RANDOM_SEED,
             label_mode='categorical'
-        )
+        ).map(self.preprocess).prefetch(self.get_batch_size())
 
         self.val_data = tf.keras.utils.image_dataset_from_directory(
             config.DIR_IMAGENET_VAL.format(self.get_data_size()),
             batch_size=self.get_batch_size(),
             image_size=config.SIZE_IMAGENET_DATA,
-            shuffle=False,
+            seed=config.RANDOM_SEED,
             label_mode='categorical'
         ).map(self.preprocess).prefetch(self.get_batch_size())
 
         self.test_data = tf.keras.utils.image_dataset_from_directory(
             config.DIR_IMAGENET_TEST.format(self.get_data_size()),
             image_size=config.SIZE_IMAGENET_DATA,
-            shuffle=False,
+            seed=config.RANDOM_SEED,
             label_mode='categorical'
         ).map(self.preprocess)
 
         with self.mirrored_strategy.scope():
-            self.model = get_model_inception(
-                len(self.train_data.class_names), self.get_data_size())
+            self.model = load_model_inception(self.get_data_size())
 
-        self.train_data = self.train_data.map(self.preprocess).prefetch(self.get_batch_size())
-
-        self.model.compile(
-            optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
         TestRun.pre(self)
 
     def run(self):
@@ -240,12 +240,12 @@ class InceptionTestRun(TestRun):
             verbose=config.VERBOSE,
             return_dict=True
         )
-        
+
         with open(self.get_file_log_evaluate(), 'w') as fileLog:
             writer = csv.DictWriter(fileLog, fieldnames=logs.keys())
             writer.writeheader()
             writer.writerow(logs)
-        
+
         TestRun.post(self)
 
     def preprocess(self, image, label):
@@ -259,9 +259,11 @@ class TransformerTestRun(TestRun):
     """
 
     def pre(self):
-        self.en_tokenizer = transformer_model.CustomTokenizer(config.FILE_TRANSFORMER_TOKENIZER_EN.format(self.get_data_size()))
-        self.fr_tokenizer = transformer_model.CustomTokenizer(config.FILE_TRANSFORMER_TOKENIZER_FR.format(self.get_data_size()))
-        
+        self.en_tokenizer = transformer_model.CustomTokenizer(
+            config.FILE_TRANSFORMER_TOKENIZER_EN.format(self.get_data_size()))
+        self.fr_tokenizer = transformer_model.CustomTokenizer(
+            config.FILE_TRANSFORMER_TOKENIZER_FR.format(self.get_data_size()))
+
         self.train_data = tf.data.experimental.make_csv_dataset(
             config.FILE_KAGGLE_ENFR_TRAIN.format(self.get_data_size()),
             ignore_errors=True,
@@ -288,9 +290,10 @@ class TransformerTestRun(TestRun):
             header=True,
             shuffle=False
         ).map(self.preprocess)
-        
+
         with self.mirrored_strategy.scope():
-            self.model = get_model_transformer(self.en_tokenizer.get_vocab_size(), self.fr_tokenizer.get_vocab_size(), self.get_data_size())
+            self.model = get_model_transformer(self.en_tokenizer.get_vocab_size(
+            ), self.fr_tokenizer.get_vocab_size(), self.get_data_size())
 
             learning_rate = transformer_model.CustomSchedule(
                 transformer_model.D_MODEL)
@@ -300,7 +303,7 @@ class TransformerTestRun(TestRun):
                 beta_2=0.98,
                 epsilon=1e-9
             )
-        
+
         self.model.compile(
             optimizer=optimizerAdam,
             loss=transformer_model.masked_loss,
@@ -338,18 +341,19 @@ class TransformerTestRun(TestRun):
             writer = csv.DictWriter(fileLog, fieldnames=logs.keys())
             writer.writeheader()
             writer.writerow(logs)
-        
+
         TestRun.post(self)
 
     def preprocess(self, row):
         iteratorColumns = iter(row.values())
         en_string_tensor = next(iteratorColumns)
         fr_string_tensor = next(iteratorColumns)
-        
-        en = self.en_tokenizer.tokenize(en_string_tensor) # Output is ragged.
+
+        en = self.en_tokenizer.tokenize(en_string_tensor)  # Output is ragged.
         en = en[:, :config.MAX_TOKENS]                    # Trim to MAX_TOKENS.
-        en = en.to_tensor()                               # Convert to 0-padded dense Tensor
-        
+        # Convert to 0-padded dense Tensor
+        en = en.to_tensor()
+
         fr = self.fr_tokenizer.tokenize(fr_string_tensor)
         fr = fr[:, :(config.MAX_TOKENS+1)]
         fr_inputs = fr[:, :-1].to_tensor()  # Drop the [END] tokens

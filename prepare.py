@@ -164,9 +164,7 @@ for size in config.V_DATA_SIZE_PERC:
         shuffle=False,
     )
     count_classes = len(train_data.class_names)
-    model = utils.get_model_inception(count_classes)
-    model.build(config.SIZE_IMAGENET_DATA + (3,))
-    model.save_weights(config.FILE_BASE_MODEL_INCEPTION.format(size))
+    utils.save_model_inception(size, count_classes)
 
 
 # build transformer model & tokens
