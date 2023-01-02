@@ -55,7 +55,7 @@ LIST_GPUS = ["/gpu:" + str(gpi_id) for gpi_id in GPU_IDS]
 GPU_MAX_SPEED = 1837
 PCI_SLOTS = ['01:00.0', '04:00.0']
 MAX_EPOCHS = 60
-MAX_PATIENCE = 5
+MAX_PATIENCE = 3
 PRE_SLEEP_TIME = 60 * 10 # 10min
 VERBOSE = 1
 
