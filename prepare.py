@@ -13,7 +13,6 @@ from tensorflow_text.tools.wordpiece_vocab import bert_vocab_from_dataset as ber
 import transformer_model
 import re
 
-
 # helper functions
 def split_csv_data(data):
     trainSize = int(config.V_TRAIN_VALIDATION_PERC[0] / 100.0 * len(data.index))
@@ -32,7 +31,12 @@ def write_vocab_file(filepath, vocab):
 
 
 
-random.seed(config.RANDOM_SEED)
+# Calling tf.keras.utils.set_random_seed sets the Python seed,
+# the NumPy seed, and the TensorFlow seed. Setting these seeds
+# is necessary to ensure any random numbers your program generates
+# are also deterministic.
+tf.keras.utils.set_random_seed(config.RANDOM_SEED)
+tf.config.experimental.enable_op_determinism()
 
 # cleanup DATA directory
 print("Clean up data directory")
@@ -212,7 +216,4 @@ print("Create base transformer model")
 for size in config.V_DATA_SIZE_PERC:
     en_tokenizer = transformer_model.CustomTokenizer(config.FILE_TRANSFORMER_TOKENIZER_EN.format(size))
     fr_tokenizer = transformer_model.CustomTokenizer(config.FILE_TRANSFORMER_TOKENIZER_FR.format(size))
-
-    model = utils.get_model_transformer(en_tokenizer.get_vocab_size(), fr_tokenizer.get_vocab_size())
-    model.build([tf.TensorShape([1, config.MAX_TOKENS]), tf.TensorShape([1, config.MAX_TOKENS])])
-    model.save_weights(config.FILE_BASE_MODEL_TRANSFORMER.format(size))
+    model = utils.save_model_transformer(size, en_tokenizer.get_vocab_size(), fr_tokenizer.get_vocab_size())

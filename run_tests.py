@@ -2,6 +2,11 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import config
 import utils
+import tensorflow as tf
+
+tf.keras.utils.set_random_seed(config.RANDOM_SEED)
+tf.config.experimental.enable_op_determinism()
+
 
 for structure in utils.structure_enumerate(config.CONTAINER_STRUCTURES):
     # ignore already executed test cases
