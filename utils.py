@@ -77,48 +77,52 @@ def load_model_inception(weights_size):
     return tf.keras.models.load_model(config.FILE_BASE_MODEL_INCEPTION.format(weights_size))
 
 
-def save_model_transformer(size, input_vocab_size, target_vocab_size):
+def build_model_transformer(input_vocab_size, target_vocab_size):
     """
-    Save & compile the tensorflow transformer model
+    Builds the transformer model
     """
     model = transformer_model.Transformer(
-        num_layers=transformer_model.NUM_LAYERS,
-        d_model=transformer_model.D_MODEL,
-        num_heads=transformer_model.NUM_HEADS,
-        dff=transformer_model.DFF,
-        input_vocab_size=input_vocab_size,
-        target_vocab_size=target_vocab_size,
-        dropout_rate=transformer_model.DROPOUT_RATE)
+            num_layers=transformer_model.NUM_LAYERS,
+            d_model=transformer_model.D_MODEL,
+            num_heads=transformer_model.NUM_HEADS,
+            dff=transformer_model.DFF,
+            input_vocab_size=input_vocab_size,
+            target_vocab_size=target_vocab_size,
+            dropout_rate=transformer_model.DROPOUT_RATE)
     model.build([
         tf.TensorShape([1, config.MAX_TOKENS]),
         tf.TensorShape([1, config.MAX_TOKENS])
     ])
-    
     learning_rate = transformer_model.CustomSchedule(
-        transformer_model.D_MODEL)
+                transformer_model.D_MODEL)
     optimizerAdam = Adam(
         learning_rate,
         beta_1=0.9,
         beta_2=0.98,
         epsilon=1e-9
     )
-
     model.compile(
         optimizer=optimizerAdam,
         loss=transformer_model.masked_loss,
         metrics=[transformer_model.masked_accuracy]
     )
-    model.save(
-        config.FILE_BASE_MODEL_TRANSFORMER.format(size),
-        include_optimizer=True)
+    return model
 
-
-def load_model_transformer(weights_size):
+def save_model_transformer(size, input_vocab_size, target_vocab_size):
     """
-    Loads the tensorflow transformer model
+    Save & build the tensorflow transformer weights
     """
+    model = build_model_transformer(input_vocab_size, target_vocab_size)
+    model.save_weights(config.FILE_BASE_MODEL_TRANSFORMER.format(size))
 
-    return tf.keras.models.load_model(config.FILE_BASE_MODEL_INCEPTION.format(weights_size))
+
+def load_model_transformer(size, input_vocab_size, target_vocab_size):
+    """
+    Loads & compile the tensorflow transformer weights
+    """
+    model = build_model_transformer(input_vocab_size, target_vocab_size)
+    model.load_weights(config.FILE_BASE_MODEL_TRANSFORMER.format(size))
+    return model
 
 
 def build_test(structure):
@@ -319,7 +323,11 @@ class TransformerTestRun(TestRun):
         ).map(self.preprocess)
 
         with self.mirrored_strategy.scope():
-            self.model = load_model_transformer(self.get_data_size())
+            self.model = load_model_transformer(
+                self.get_data_size(),
+                self.en_tokenizer.get_vocab_size(),
+                self.fr_tokenizer.get_vocab_size()
+            )
 
         TestRun.pre(self)
 

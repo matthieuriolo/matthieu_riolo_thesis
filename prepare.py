@@ -96,6 +96,20 @@ for size in config.V_DATA_SIZE_PERC:
         for imgTestPath in testData:
             shutil.move(f'{config.DIR_IMAGENET_DATA}/{dataClass}/{imgTestPath}', f'{dirTest}/{dataClass}')
 
+
+# build inception from tensorflow application
+print("Create base inceptionv3 models")
+if not os.path.isdir(config.DIR_BASE_MODEL_INCEPTION):
+    os.mkdir(config.DIR_BASE_MODEL_INCEPTION)
+
+for size in config.V_DATA_SIZE_PERC:
+    train_data = tf.keras.utils.image_dataset_from_directory(
+        config.DIR_IMAGENET_TRAIN.format(size),
+        shuffle=False,
+    )
+    count_classes = len(train_data.class_names)
+    utils.save_model_inception(size, count_classes)
+
 # download kaggle https://www.kaggle.com/datasets/dhruvildave/en-fr-translation-dataset
 print("Download and unzip kaggle en/fr translation dataset")
 os.system(f'kaggle datasets download -d dhruvildave/en-fr-translation-dataset -p {config.DIR_KAGGLE_ENFR_SET}')
@@ -156,20 +170,6 @@ for size in config.V_DATA_SIZE_PERC:
     dataTrain.to_csv(config.FILE_KAGGLE_ENFR_TRAIN.format(size), index = False)
     dataVal.to_csv(config.FILE_KAGGLE_ENFR_VAL.format(size), index = False)
     dataTest.to_csv(config.FILE_KAGGLE_ENFR_TEST.format(size), index = False)
-
-# build inception from tensorflow application
-print("Create base inceptionv3 models")
-if not os.path.isdir(config.DIR_BASE_MODEL_INCEPTION):
-    os.mkdir(config.DIR_BASE_MODEL_INCEPTION)
-
-for size in config.V_DATA_SIZE_PERC:
-    train_data = tf.keras.utils.image_dataset_from_directory(
-        config.DIR_IMAGENET_TRAIN.format(size),
-        shuffle=False,
-    )
-    count_classes = len(train_data.class_names)
-    utils.save_model_inception(size, count_classes)
-
 
 # build transformer model & tokens
 print("Create tokenizer data for transformer")
