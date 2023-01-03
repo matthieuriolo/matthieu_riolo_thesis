@@ -257,7 +257,11 @@ class InceptionTestRun(TestRun):
             callbacks=[
                 EarlyStopping(
                     monitor='loss',
-                    patience=config.MAX_PATIENCE
+                    patience=config.MAX_PATIENCE_LOSS
+                ),
+                EarlyStopping(
+                    monitor='val_loss',
+                    patience=config.MAX_PATIENCE_VAL_LOSS
                 ),
                 CSVLogger(self.get_file_log_fit())
             ]
@@ -342,6 +346,10 @@ class TransformerTestRun(TestRun):
                 EarlyStopping(
                     monitor='loss',
                     patience=config.MAX_PATIENCE
+                ),
+                EarlyStopping(
+                    monitor='val_loss',
+                    patience=config.MAX_PATIENCE_VAL_LOSS
                 ),
                 CSVLogger(self.get_file_log_fit())
             ]

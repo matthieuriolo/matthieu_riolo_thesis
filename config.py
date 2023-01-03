@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import math
+
 # data locations
 DIR_DATA_SET = '/media/matthieuriolo/WinSSD/code/matthieu_riolo_thesis/data'
 
@@ -55,7 +57,8 @@ LIST_GPUS = ["/gpu:" + str(gpi_id) for gpi_id in GPU_IDS]
 GPU_MAX_SPEED = 1837
 PCI_SLOTS = ['01:00.0', '04:00.0']
 MAX_EPOCHS = 60
-MAX_PATIENCE = 3
+MAX_PATIENCE_LOSS = 3
+MAX_PATIENCE_VAL_LOSS = math.ceil(MAX_EPOCHS * 0.1) # 10% of epochs 
 PRE_SLEEP_TIME = 60 * 10 # 10min
 VERBOSE = 1
 
