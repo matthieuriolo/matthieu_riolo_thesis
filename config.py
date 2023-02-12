@@ -58,7 +58,7 @@ GPU_MAX_SPEED = 1837
 PCI_SLOTS = ['01:00.0', '04:00.0']
 MAX_EPOCHS = 60
 MAX_PATIENCE_LOSS = 3
-MAX_PATIENCE_VAL_LOSS = math.ceil(MAX_EPOCHS * 0.1) # 10% of epochs 
+MAX_PATIENCE_VAL_LOSS = math.ceil(MAX_EPOCHS * 0.1) # 10% of epochs
 PRE_SLEEP_TIME = 60 * 10 # 10min
 VERBOSE = 1
 
@@ -79,7 +79,7 @@ V_ALGO_TRANSFORMER = 'transformer'
 V_ALGO_INCEPTION = 'inception'
 
 V_BATCH_SIZES = [32, 64, 128]
-V_DATA_SIZE_PERC = [2, 5, 10, 50, 100]
+V_DATA_SIZE_PERC = [2, 5, 10]
 V_TRAIN_VALIDATION_PERC = (92, 2) # remaining is used as the size of the test data set
 
 K_PCI_GENERATION = 'pci'
@@ -90,11 +90,11 @@ K_BATCH_SIZE = 'batch_size'
 
 CONTAINER_STRUCTURES = dict([
     (K_ALGO, [V_ALGO_INCEPTION, V_ALGO_TRANSFORMER]),
-    (K_PCI_GENERATION, [1, 2, 3]),
+    (K_PCI_GENERATION, [1, 2]),
     (K_GPU_PERC, [33, 66, 100]),
     (K_DATA_SIZE_PERC, V_DATA_SIZE_PERC),
     (K_BATCH_SIZE, V_BATCH_SIZES),
-    (K_COUNT_RUNS, [1, 2])
+    (K_COUNT_RUNS, [1])
 ])
 
 

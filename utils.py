@@ -345,7 +345,7 @@ class TransformerTestRun(TestRun):
             callbacks=[
                 EarlyStopping(
                     monitor='loss',
-                    patience=config.MAX_PATIENCE
+                    patience=config.MAX_PATIENCE_LOSS
                 ),
                 EarlyStopping(
                     monitor='val_loss',
