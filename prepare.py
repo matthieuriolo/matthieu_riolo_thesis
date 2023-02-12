@@ -129,10 +129,6 @@ for kaggleDataChunk in pd.read_csv(config.DIR_KAGGLE_ENFR_SET + '/en-fr.csv', ch
         &
         (kaggleDataChunk['fr'].str.split().str.len() > config.SIZE_KAGGLE_ENFR_MIN_LENGTH)
     ]
-
-    # remove "formating" symbols
-    for symbol_from, symbol_to in config.REPLACE_KAGGLE_SYMBOLS.items():
-        kaggleDataChunk = kaggleDataChunk.replace(symbol_from, symbol_to, regex=True)
     
     # detect none basic latin symbol and skip them
     # rather restrive - only allow chars from: Basic Latin, Latin-1 Supplement, Latin Extended-A, Latin Extended-B

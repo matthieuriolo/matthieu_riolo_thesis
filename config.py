@@ -13,17 +13,14 @@ DIR_IMAGENET_TEST = DIR_IMAGENET_SET + '/{0}_test'
 
 SIZE_KAGGLE_ENFR_MAX_LENGTH = 30
 SIZE_KAGGLE_ENFR_MIN_LENGTH = 4
-REPLACE_KAGGLE_SYMBOLS = {
-    '◦': '',
-    r'\u2028': ' ', # line separator
-    r'\u0092': "'", # PRIVATE USE TWO
-}
 SKIP_KAGGLE_CONTAINS_CASE_INSENSITIVE = [
     '\|', # formatting symbol
+    '¦',
     '\&',
     '\d', # remove all numbers
-    '\(|\)|\[|\]', # removing brackets
+    '\(|\)|\[|\]|\{|\}', # removing brackets
     '%', # removing percentage
+    '\#',
     '\/', # remove lines with alternative words like TPS/TVH
     ':',
     ';',
@@ -33,7 +30,9 @@ SKIP_KAGGLE_CONTAINS_CASE_INSENSITIVE = [
     '<',
     '\"',
     '\'',
-    '\W\s*[-_]',
+    '\W\s*\-',
+    '\w\s\w\s\w', # remove lines with contains space between every letter
+    '_',
     '=',
     '\s+[\?\!\.\,]',
     '\.\s*\.', # remove .. and variants with space between them
@@ -52,11 +51,38 @@ SKIP_KAGGLE_CONTAINS_CASE_INSENSITIVE = [
     'Telephone:',
     'Tél\.',
     'Téléphone:',
-    # weirds&letter indicating bad formatting
+
+    # weird letter indicating bad formatting
     'Appendix',
     '©',
+    '®',
     'Ã',
-    '\s\s'
+    '\s\s',
+    '¡',
+    '£',
+    '\$',
+    'ɂ',
+    'ł',
+    'ø',
+    'æ',
+    '·',
+    '§',
+    '±',
+    '¥',
+    '¬',
+    '°',
+    '◦',
+    '¶',
+    '¿',
+    'ð',
+    'þ',
+    'ħ',
+    r'\u2028', # line separator
+    r'\u0092', # PRIVATE USE TWO
+    r'\u2044', # fractuib slash
+    'ł',
+    'ƒ',
+    'μ',
 ]
 SKIP_KAGGLE_CONTAINS_CASE_SENSITIVE = [
     '[A-Z]+\.', # remove titles likes MD. DENT. 
