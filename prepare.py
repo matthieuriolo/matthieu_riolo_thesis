@@ -118,7 +118,7 @@ os.system(f'unzip -d {config.DIR_KAGGLE_ENFR_SET} {config.DIR_KAGGLE_ENFR_SET}/e
 # cleanup kaggle en/fr data
 print("Cleanup kaggle en/fr translation dataset")
 kaggleDataFirstIteration = True
-for kaggleDataChunk in pd.read_csv(config.DIR_KAGGLE_ENFR_SET + '/en-fr.csv', chunksize=100):
+for kaggleDataChunk in pd.read_csv(config.DIR_KAGGLE_ENFR_SET + '/en-fr.csv', chunksize=config.PANDA_CHUNK_SIZE):
     # remove very small or very large entries 
     kaggleDataChunk = kaggleDataChunk[
         (kaggleDataChunk['en'].str.split().str.len() < config.SIZE_KAGGLE_ENFR_MAX_LENGTH)
@@ -144,11 +144,19 @@ for kaggleDataChunk in pd.read_csv(config.DIR_KAGGLE_ENFR_SET + '/en-fr.csv', ch
     ]
 
     # skip entries with bad formating
-    for skipableString in config.SKIP_KAGGLE_CONTAINS:
+    # (case insensitive)
+    for skipableString in config.SKIP_KAGGLE_CONTAINS_CASE_INSENSITIVE:
         kaggleDataChunk = kaggleDataChunk[
-            (kaggleDataChunk['en'].str.contains(skipableString, flags=re.IGNORECASE) == False)
+            (kaggleDataChunk['en'].str.contains(skipableString, flags=re.IGNORECASE, regex=True) == False)
             &
-            (kaggleDataChunk['fr'].str.contains(skipableString, flags=re.IGNORECASE) == False)
+            (kaggleDataChunk['fr'].str.contains(skipableString, flags=re.IGNORECASE, regex=True) == False)
+        ]
+    # (case sensitive)
+    for skipableString in config.SKIP_KAGGLE_CONTAINS_CASE_SENSITIVE:
+        kaggleDataChunk = kaggleDataChunk[
+            (kaggleDataChunk['en'].str.contains(skipableString, regex=True) == False)
+            &
+            (kaggleDataChunk['fr'].str.contains(skipableString, regex=True) == False)
         ]
 
     kaggleDataChunk.to_csv(

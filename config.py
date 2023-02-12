@@ -12,22 +12,39 @@ DIR_IMAGENET_VAL = DIR_IMAGENET_SET + '/{0}_validation'
 DIR_IMAGENET_TEST = DIR_IMAGENET_SET + '/{0}_test'
 
 SIZE_KAGGLE_ENFR_MAX_LENGTH = 30
-SIZE_KAGGLE_ENFR_MIN_LENGTH = 3
+SIZE_KAGGLE_ENFR_MIN_LENGTH = 4
 REPLACE_KAGGLE_SYMBOLS = {
     '◦': '',
     r'\u2028': ' ', # line separator
     r'\u0092': "'", # PRIVATE USE TWO
 }
-SKIP_KAGGLE_CONTAINS = [
-    '---',
-    '___',
-    '===',
-    '\.' * 6,
+SKIP_KAGGLE_CONTAINS_CASE_INSENSITIVE = [
+    '\|', # formatting symbol
+    '\&',
+    '\d', # remove all numbers
+    '\(|\)|\[|\]', # removing brackets
+    '%', # removing percentage
+    '\/', # remove lines with alternative words like TPS/TVH
+    ':',
+    ';',
+    '«',
+    '»',
+    '>',
+    '<',
+    '\"',
+    '\'',
+    '\W\s*[-_]',
+    '=',
+    '\s+[\?\!\.\,]',
+    '\.\s*\.', # remove .. and variants with space between them
     '……',
+
     # urls
     'http:\/\/'
     'https:\/\/',
     'www\.',
+    '\.com',
+
     # contact adress & emails
     '@',
     'Fax',
@@ -35,6 +52,15 @@ SKIP_KAGGLE_CONTAINS = [
     'Telephone:',
     'Tél\.',
     'Téléphone:',
+    # weirds&letter indicating bad formatting
+    'Appendix',
+    '©',
+    'Ã',
+    '\s\s'
+]
+SKIP_KAGGLE_CONTAINS_CASE_SENSITIVE = [
+    '[A-Z]+\.', # remove titles likes MD. DENT. 
+    '[A-Z][A-Z]+', # remove capital words
 ]
 DIR_KAGGLE_ENFR_SET = DIR_DATA_SET + '/kaggle_english_french'
 FILE_KAGGLE_ENFR_TRAIN = DIR_KAGGLE_ENFR_SET + '/{0}_train.csv'
@@ -100,5 +126,6 @@ CONTAINER_STRUCTURES = dict([
 
 # others
 RANDOM_SEED = 123456
+PANDA_CHUNK_SIZE = 10000
 BERT_TOKENIZER_PARAMS=dict(lower_case=True)
 MAX_TOKENS = SIZE_KAGGLE_ENFR_MAX_LENGTH * 2
