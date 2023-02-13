@@ -24,12 +24,12 @@ SKIP_KAGGLE_CONTAINS_CASE_INSENSITIVE = [
     '\/', # remove lines with alternative words like TPS/TVH
     ':',
     ';',
-    '«',
-    '»',
+    # '«',
+    # '»',
+    # '\"',
+    # '\'',
     '>',
     '<',
-    '\"',
-    '\'',
     '\W\s*\-',
     '\w\s\w\s\w', # remove lines with contains space between every letter
     '_',
@@ -57,7 +57,7 @@ SKIP_KAGGLE_CONTAINS_CASE_INSENSITIVE = [
     '©',
     '®',
     'Ã',
-    '\s\s',
+    # '\s\s',
     '¡',
     '£',
     '\$',
@@ -131,7 +131,7 @@ V_ALGO_TRANSFORMER = 'transformer'
 V_ALGO_INCEPTION = 'inception'
 
 V_BATCH_SIZES = [32, 64, 128]
-V_DATA_SIZE_PERC = [2, 5, 10]
+V_DATA_SIZE_PERC = [2, 5, 10, 50, 100]
 V_TRAIN_VALIDATION_PERC = (92, 2) # remaining is used as the size of the test data set
 
 K_PCI_GENERATION = 'pci'
