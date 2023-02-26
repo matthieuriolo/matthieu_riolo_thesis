@@ -127,7 +127,7 @@ def load_model_transformer(size, input_vocab_size, target_vocab_size):
 
 def build_test(structure):
     """
-    Resolves the model type which should be used ffor testing
+    Resolves the model type which should be used for testing
     Returns an initilalized TestRun object
     """
     if config.K_ALGO in structure:
@@ -225,7 +225,7 @@ class InceptionTestRun(TestRun):
             image_size=config.SIZE_IMAGENET_DATA,
             seed=config.RANDOM_SEED,
             label_mode='categorical'
-        ).map(self.preprocess).prefetch(self.get_batch_size())
+        ).map(self.preprocess).prefetch(self.get_batch_size() * config.COUNT_PREFETCH_DATA)
 
         self.val_data = tf.keras.utils.image_dataset_from_directory(
             config.DIR_IMAGENET_VAL.format(self.get_data_size()),
@@ -233,7 +233,7 @@ class InceptionTestRun(TestRun):
             image_size=config.SIZE_IMAGENET_DATA,
             seed=config.RANDOM_SEED,
             label_mode='categorical'
-        ).map(self.preprocess).prefetch(self.get_batch_size())
+        ).map(self.preprocess).prefetch(self.get_batch_size() * config.COUNT_PREFETCH_DATA)
 
         self.test_data = tf.keras.utils.image_dataset_from_directory(
             config.DIR_IMAGENET_TEST.format(self.get_data_size()),
@@ -306,7 +306,7 @@ class TransformerTestRun(TestRun):
             num_epochs=1,
             header=True,
             shuffle=False
-        ).map(self.preprocess).prefetch(self.get_batch_size())
+        ).map(self.preprocess).prefetch(self.get_batch_size() * config.COUNT_PREFETCH_DATA)
 
         self.val_data = tf.data.experimental.make_csv_dataset(
             config.FILE_KAGGLE_ENFR_VAL.format(self.get_data_size()),
@@ -315,7 +315,7 @@ class TransformerTestRun(TestRun):
             num_epochs=1,
             header=True,
             shuffle=False
-        ).map(self.preprocess).prefetch(self.get_batch_size())
+        ).map(self.preprocess).prefetch(self.get_batch_size() * config.COUNT_PREFETCH_DATA)
 
         self.test_data = tf.data.experimental.make_csv_dataset(
             config.FILE_KAGGLE_ENFR_TEST.format(self.get_data_size()),
