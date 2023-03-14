@@ -24,10 +24,10 @@ SKIP_KAGGLE_CONTAINS_CASE_INSENSITIVE = [
     '\/', # remove lines with alternative words like TPS/TVH
     ':',
     ';',
-    # '«',
-    # '»',
-    # '\"',
-    # '\'',
+    '«',
+    '»',
+    '\"',
+    '\'',
     '>',
     '<',
     '\W\s*\-',
@@ -57,7 +57,7 @@ SKIP_KAGGLE_CONTAINS_CASE_INSENSITIVE = [
     '©',
     '®',
     'Ã',
-    # '\s\s',
+    '\s\s',
     '¡',
     '£',
     '\$',
@@ -131,7 +131,7 @@ V_ALGO_TRANSFORMER = 'transformer'
 V_ALGO_INCEPTION = 'inception'
 
 V_BATCH_SIZES = [32, 64, 128]
-V_DATA_SIZE_PERC = [2, 5, 10, 50, 100]
+V_DATA_SIZE_PERC = [2, 5, 10]
 V_TRAIN_VALIDATION_PERC = (92, 2) # remaining is used as the size of the test data set
 
 K_PCI_GENERATION = 'pci'
@@ -142,7 +142,7 @@ K_BATCH_SIZE = 'batch_size'
 
 CONTAINER_STRUCTURES = dict([
     (K_ALGO, [V_ALGO_INCEPTION, V_ALGO_TRANSFORMER]),
-    (K_PCI_GENERATION, [1, 2]),
+    (K_PCI_GENERATION, [1, 2, 3]),
     (K_GPU_PERC, [33, 66, 100]),
     (K_DATA_SIZE_PERC, V_DATA_SIZE_PERC),
     (K_BATCH_SIZE, V_BATCH_SIZES),
@@ -155,4 +155,4 @@ RANDOM_SEED = 123456
 PANDA_CHUNK_SIZE = 10000
 BERT_TOKENIZER_PARAMS=dict(lower_case=True)
 MAX_TOKENS = SIZE_KAGGLE_ENFR_MAX_LENGTH * 2
-COUNT_PREFETCH_DATA = 1
+COUNT_PREFETCH_DATA = 2
