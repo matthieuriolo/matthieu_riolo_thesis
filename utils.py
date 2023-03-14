@@ -67,6 +67,7 @@ def save_model_inception(size, count_classes):
     model.save(
         config.FILE_BASE_MODEL_INCEPTION.format(size),
         include_optimizer=True)
+    model.summary()
 
 
 def load_model_inception(weights_size):
@@ -114,6 +115,7 @@ def save_model_transformer(size, input_vocab_size, target_vocab_size):
     """
     model = build_model_transformer(input_vocab_size, target_vocab_size)
     model.save_weights(config.FILE_BASE_MODEL_TRANSFORMER.format(size))
+    model.summary()
 
 
 def load_model_transformer(size, input_vocab_size, target_vocab_size):
