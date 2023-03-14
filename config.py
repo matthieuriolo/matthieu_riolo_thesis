@@ -131,7 +131,7 @@ V_ALGO_TRANSFORMER = 'transformer'
 V_ALGO_INCEPTION = 'inception'
 
 V_BATCH_SIZES = [32, 64, 128]
-V_DATA_SIZE_PERC = [2, 5, 10]
+V_DATA_SIZE_PERC = [2, 5, 10, 50, 100]
 V_TRAIN_VALIDATION_PERC = (92, 2) # remaining is used as the size of the test data set
 
 K_PCI_GENERATION = 'pci'
