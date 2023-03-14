@@ -148,8 +148,6 @@ class TestRun:
         self.structure = structure
         self.startDateTime = None
         self.endDateTime = None
-        self.mirrored_strategy = tf.distribute.MirroredStrategy(
-            devices=config.LIST_GPUS)
 
     def pre(self):
         if not os.path.isdir(config.DIR_RESULTS):
@@ -173,6 +171,7 @@ class TestRun:
             os.system(f'sudo nvidia-smi -i {gpu_id} --reset-gpu-clocks')
         for pci_slot in config.PCI_SLOTS:
             os.system(f'sudo ./pcie_set_speed.sh {pci_slot} 4')
+
 
         with open(self.get_file_time(), 'w') as fileTime:
             fileTime.write(self.startDateTime.isoformat())
@@ -217,6 +216,9 @@ class InceptionTestRun(TestRun):
     """
     Test class for the inception model
     """
+    def __init__(self, structure):
+        self.mirrored_strategy = tf.distribute.MirroredStrategy(devices=config.LIST_GPUS)
+        TestRun.__init__(self, structure)
 
     def pre(self):
         self.train_data = tf.keras.utils.image_dataset_from_directory(
@@ -292,6 +294,9 @@ class TransformerTestRun(TestRun):
     """
     Test class for the transformer model
     """
+    def __init__(self, structure):
+        self.mirrored_strategy = tf.distribute.MultiWorkerMirroredStrategy()
+        TestRun.__init__(self, structure)
 
     def pre(self):
         self.en_tokenizer = transformer_model.CustomTokenizer(
