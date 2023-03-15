@@ -297,6 +297,7 @@ class TransformerTestRun(TestRun):
     Test class for the transformer model
     """
     def __init__(self, structure):
+        # works the same as MirroredStrategy on single device but has a better reduce operator for arrays
         self.mirrored_strategy = tf.distribute.MultiWorkerMirroredStrategy()
         TestRun.__init__(self, structure)
 
