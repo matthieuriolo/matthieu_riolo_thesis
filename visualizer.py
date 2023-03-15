@@ -13,53 +13,53 @@ OUTPUT_PATH = 'results.csv'
 OUTPUT_IMG = 'graphs/'
 
 
-# resultFolders = glob.glob(PATH_RESULTS + '*')
-# with open(OUTPUT_PATH, 'w', newline='') as csvfile:
-#     writer = csv.writer(csvfile)
-#     writer.writerow(['name', 'duration', 'epochs', 'epoch_duration', 'scaled_epoch_duration', 'scaled_duration',])
-#     writable_rows = []
-#
-#     for resultFolder in resultFolders:
-#         testName = os.path.basename(resultFolder)
-#
-#         # skip old testcases
-#         if not testName.endswith('-1'):
-#             continue
-#
-#         datasize = int(testName.split('-')[3])
-#         fileName = resultFolder + '/log_fit.txt'
-#
-#         with open(fileName) as f:
-#             epochs = len(f.readlines()) - 1
-#
-#         fileName = resultFolder + '/time.txt'
-#
-#         with open(fileName) as f:
-#             lines = f.readlines()
-#             strDuration = lines[2]
-#             d = 0
-#             if ',' in strDuration:
-#                 splits = strDuration.split(', ')
-#                 d = int(splits[0].split(' ')[0])
-#                 strDuration = splits[1]
-#             dt = datetime.strptime(strDuration, "%H:%M:%S.%f")
-#
-#             duration = timedelta(days=d, hours=dt.hour, minutes=dt.minute, seconds=dt.second)
-#             duration = duration.total_seconds()
-#         duration_scaled = duration / datasize
-#         duration_per_epoch = duration / epochs
-#         duration_per_epoch_scaled = duration_per_epoch / datasize
-#
-#         writable_rows.append([
-#             testName,
-#             duration,
-#             epochs,
-#             duration_per_epoch,
-#             duration_per_epoch_scaled,
-#             duration_scaled,
-#         ])
-#
-#     writer.writerows(natsorted(writable_rows, key=lambda writable_row: writable_row[0]))
+resultFolders = glob.glob(PATH_RESULTS + '*')
+with open(OUTPUT_PATH, 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(['name', 'duration', 'epochs', 'epoch_duration', 'scaled_epoch_duration', 'scaled_duration',])
+    writable_rows = []
+
+    for resultFolder in resultFolders:
+        testName = os.path.basename(resultFolder)
+
+        # skip old testcases
+        if not testName.endswith('-1'):
+            continue
+
+        datasize = int(testName.split('-')[3])
+        fileName = resultFolder + '/log_fit.txt'
+
+        with open(fileName) as f:
+            epochs = len(f.readlines()) - 1
+
+        fileName = resultFolder + '/time.txt'
+
+        with open(fileName) as f:
+            lines = f.readlines()
+            strDuration = lines[2]
+            d = 0
+            if ',' in strDuration:
+                splits = strDuration.split(', ')
+                d = int(splits[0].split(' ')[0])
+                strDuration = splits[1]
+            dt = datetime.strptime(strDuration, "%H:%M:%S.%f")
+
+            duration = timedelta(days=d, hours=dt.hour, minutes=dt.minute, seconds=dt.second)
+            duration = duration.total_seconds()
+        duration_scaled = duration / datasize
+        duration_per_epoch = duration / epochs
+        duration_per_epoch_scaled = duration_per_epoch / datasize
+
+        writable_rows.append([
+            testName,
+            duration,
+            epochs,
+            duration_per_epoch,
+            duration_per_epoch_scaled,
+            duration_scaled,
+        ])
+
+    writer.writerows(natsorted(writable_rows, key=lambda writable_row: writable_row[0]))
 
 
 def collect_rows_match_regex(reg):
@@ -136,14 +136,14 @@ def plot_gpu_speed(title, model_name, data_size, batch_size, with_pcie_3=False):
     pcie_1 = collect_values(model_name + r'-1-\d+-' + data_size + '-' + batch_size + '-1', 3)
     pcie_2 = collect_values(model_name + r'-2-\d+-' + data_size + '-' + batch_size + '-1', 3)
     plt.title(title)
-    plt.plot(group_names, pcie_1, label='PCIe 1')
-    plt.plot(group_names, pcie_2, label='PCIe 2')
+    plt.plot(group_names, pcie_1, label='PCIe 4 GB/s')
+    plt.plot(group_names, pcie_2, label='PCIe 8 GB/s')
     if with_pcie_3:
         pcie_3 = collect_values(model_name + r'-3-\d+-' + data_size + '-' + batch_size + '-1', 3)
-        plt.plot(group_names, pcie_3, label='PCIe 3')
+        plt.plot(group_names, pcie_3, label='PCIe 16 GB/s')
 
     plt.ylabel('Dauer Epoche (s)')
-    plt.xlabel('GPU')
+    plt.xlabel('GPU Geschwindigkeit')
     plt.legend()
     plt.grid(True)
 
@@ -224,31 +224,30 @@ def save_dataset_speed(save_name, title, model_name, pci_speed, gpu_speed, data_
                            ha="center", va="center", color="w")
 
     ax.set_xticks(np.arange(len(batch_sizes)), labels=batch_sizes)
-    ax.set_yticks(np.arange(len(data_sizes)), labels=data_sizes)
+    ax.set_yticks(np.arange(len(data_sizes)), labels=[i + '%' for i in data_sizes])
     ax.set_title(title)
     plt.ylabel('Datensatz-Grösse')
     plt.xlabel('Batch-Grösse')
     fig.tight_layout()
     # plt.show()
-    plt.savefig(OUTPUT_IMG + save_name + '.'
-                                         'png')
+    plt.savefig(OUTPUT_IMG + save_name + '.png')
 
 def build_dataset_speed():
-    save_dataset_speed('inception-g1-1-33', 'Inception G1 - GPU 33% PCIe 1', 'inception', '1', '33', ['10', '5', '2'])
-    save_dataset_speed('inception-g1-1-66', 'Inception G1 - GPU 66% PCIe 1', 'inception', '1', '66', ['10', '5', '2'])
-    save_dataset_speed('inception-g1-1-100', 'Inception G1 - GPU 100% PCIe 1', 'inception', '1', '100', ['10', '5', '2'])
+    save_dataset_speed('inception-g1-1-33', 'Inception G1 - GPU 33% PCIe 4 GB/s', 'inception', '1', '33', ['10', '5', '2'])
+    save_dataset_speed('inception-g1-1-66', 'Inception G1 - GPU 66% PCIe 4 GB/s', 'inception', '1', '66', ['10', '5', '2'])
+    save_dataset_speed('inception-g1-1-100', 'Inception G1 - GPU 100% PCIe 4 GB/s', 'inception', '1', '100', ['10', '5', '2'])
 
-    save_dataset_speed('inception-g1-2-33', 'Inception G1 - GPU 33% PCIe 2', 'inception', '2', '33', ['10', '5', '2'])
-    save_dataset_speed('inception-g1-2-66', 'Inception G1 - GPU 66% PCIe 2', 'inception', '2', '66', ['10', '5', '2'])
-    save_dataset_speed('inception-g1-2-100', 'Inception G1 - GPU 100% PCIe 2', 'inception', '2', '100', ['10', '5', '2'])
+    save_dataset_speed('inception-g1-2-33', 'Inception G1 - GPU 33% PCIe 8 GB/s', 'inception', '2', '33', ['10', '5', '2'])
+    save_dataset_speed('inception-g1-2-66', 'Inception G1 - GPU 66% PCIe 8 GB/s', 'inception', '2', '66', ['10', '5', '2'])
+    save_dataset_speed('inception-g1-2-100', 'Inception G1 - GPU 100% PCIe 8 GB/s', 'inception', '2', '100', ['10', '5', '2'])
 
-    save_dataset_speed('transformer-g1-1-33', 'Transformer G1 - GPU 33% PCIe 1', 'transformer', '1', '33', ['5', '2'])
-    save_dataset_speed('transformer-g1-1-66', 'Transformer G1 - GPU 66% PCIe 1', 'transformer', '1', '66', ['5', '2'])
-    save_dataset_speed('transformer-g1-1-100', 'Transformer G1 - GPU 100% PCIe 1', 'transformer', '1', '100', ['5', '2'])
+    save_dataset_speed('transformer-g1-1-33', 'Transformer G1 - GPU 33% PCIe 4 GB/s', 'transformer', '1', '33', ['5', '2'])
+    save_dataset_speed('transformer-g1-1-66', 'Transformer G1 - GPU 66% PCIe 4 GB/s', 'transformer', '1', '66', ['5', '2'])
+    save_dataset_speed('transformer-g1-1-100', 'Transformer G1 - GPU 100% PCIe 4 GB/s', 'transformer', '1', '100', ['5', '2'])
 
-    save_dataset_speed('transformer-g1-2-33', 'Transformer G1 - GPU 33% PCIe 2', 'transformer', '2', '33', ['5', '2'])
-    save_dataset_speed('transformer-g1-2-66', 'Transformer G1 - GPU 66% PCIe 2', 'transformer', '2', '66', ['5', '2'])
-    save_dataset_speed('transformer-g1-2-100', 'Transformer G1 - GPU 100% PCIe 2', 'transformer', '2', '100', ['5', '2'])
+    save_dataset_speed('transformer-g1-2-33', 'Transformer G1 - GPU 33% PCIe 8 GB/s', 'transformer', '2', '33', ['5', '2'])
+    save_dataset_speed('transformer-g1-2-66', 'Transformer G1 - GPU 66% PCIe 8 GB/s', 'transformer', '2', '66', ['5', '2'])
+    save_dataset_speed('transformer-g1-2-100', 'Transformer G1 - GPU 100% PCIe 8 GB/s', 'transformer', '2', '100', ['5', '2'])
 
 
 build_pci_speed()
